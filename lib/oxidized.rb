@@ -4,8 +4,10 @@ require 'refinements'
 module Oxidized
   class OxidizedError < StandardError; end
 
+  # 获取项目路径
   Directory = File.expand_path(File.join(File.dirname(__FILE__), '../'))
 
+  # 加载相关模块
   require 'oxidized/version'
   require 'oxidized/config'
   require 'oxidized/config/vars'
@@ -15,6 +17,12 @@ module Oxidized
   require 'oxidized/hook'
   require 'oxidized/core'
 
+  # Oxidized 项目配置
+  def self.config
+    asetus.cfg
+  end
+
+  # 查询或设置 asetus
   def self.asetus
     @@asetus
   end
@@ -23,10 +31,7 @@ module Oxidized
     @@asetus = val
   end
 
-  def self.config
-    asetus.cfg
-  end
-
+  # 查询或设置 logger
   def self.logger
     @@logger
   end
@@ -36,7 +41,9 @@ module Oxidized
   end
 
   def self.setup_logger
+    # 自动创建日志文件夹
     FileUtils.mkdir_p(Config::Log) unless File.directory?(Config::Log)
+
     self.logger = if config.has_key?('use_syslog') && config.use_syslog
                     require 'syslog/logger'
                     Syslog::Logger.new('oxidized')
@@ -48,6 +55,8 @@ module Oxidized
                       Logger.new(STDERR)
                     end
                   end
+
+    # 如果项目配置 debug 模式，自动设置日志级别为 info
     logger.level = Logger::INFO unless config.debug
   end
 end

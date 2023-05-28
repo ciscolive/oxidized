@@ -30,6 +30,7 @@ module Oxidized
         # map node parameters
         keys = {}
         @cfg.map.each { |key, sql_column| keys[key.to_sym] = node_var_interpolate node[sql_column.to_sym] }
+        # 设置设备属组和模型
         keys[:model] = map_model keys[:model] if keys.has_key? :model
         keys[:group] = map_group keys[:group] if keys.has_key? :group
 

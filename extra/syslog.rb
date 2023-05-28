@@ -28,17 +28,18 @@ require_relative 'rest_client'
 
 module Oxidized
   require 'asetus'
+
   class Config
     Root = File.join Dir.home, '.config', 'oxidized'
   end
 
   CFGS = Asetus.new name: 'oxidized', load: false, key_to_s: true
-  CFGS.default.syslogd.port        = 514
-  CFGS.default.syslogd.file        = 'messages'
-  CFGS.default.syslogd.resolve     = true
-  CFGS.default.syslogd.dns_map     = {
+  CFGS.default.syslogd.port = 514
+  CFGS.default.syslogd.file = 'messages'
+  CFGS.default.syslogd.resolve = true
+  CFGS.default.syslogd.dns_map = {
     '(.*)\.strip\.this\.domain\.com' => '\\1',
-    '(.*)\.also\.this\.net'          => '\\1'
+    '(.*)\.also\.this\.net' => '\\1'
   }
 
   begin
@@ -51,10 +52,10 @@ module Oxidized
 
   class SyslogMonitor
     MSG = {
-      ios:   /%SYS-(SW[0-9]+-)?5-CONFIG_I:/,
+      ios: /%SYS-(SW[0-9]+-)?5-CONFIG_I:/,
       junos: 'UI_COMMIT:',
-      eos:   /%SYS-5-CONFIG_I:/,
-      nxos:  /%VSHD-5-VSHD_SYSLOG_CONFIG_I:/,
+      eos: /%SYS-5-CONFIG_I:/,
+      nxos: /%VSHD-5-VSHD_SYSLOG_CONFIG_I:/,
       aruba: 'Notice-Type=\'Running'
     }.freeze
 
@@ -89,6 +90,7 @@ module Oxidized
       opts[:from] = log[-1][1..-2]
       opts
     end
+
     alias nxos ios
     alias eos ios
 

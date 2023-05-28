@@ -3,6 +3,7 @@ module Refinements
   refine String do
     attr_accessor :type, :cmd, :name
 
+    # 去除尾部行数
     # @return [String] copy of self with last line removed
     def cut_tail(lines = 1)
       return "" if length.zero?
@@ -10,6 +11,7 @@ module Refinements
       each_line.to_a[0..(-1 - lines)].join
     end
 
+    # 去除前面几行
     # @return [String] copy of self with first line removed
     def cut_head(lines = 1)
       return "" if length.zero?
@@ -17,6 +19,9 @@ module Refinements
       each_line.to_a[lines..-1].join
     end
 
+    # 去除首位行
+    # head -- 首行开始
+    # tail -- 尾部结束
     # @return [String] copy of self with first and last lines removed
     def cut_both(head = 1, tail = 1)
       return "" if length.zero?

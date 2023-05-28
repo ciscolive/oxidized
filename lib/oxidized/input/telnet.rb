@@ -6,13 +6,16 @@ module Oxidized
     include Input::CLI
     attr_reader :telnet
 
+    # Telnet 登录主题逻辑
     def connect(node)
       @node    = node
       @timeout = Oxidized.config.timeout
+      # telnet 相关回调函数
       @node.model.cfg['telnet'].each { |cb| instance_exec(&cb) }
-      @log = File.open(Oxidized::Config::Log + "/#{@node.ip}-telnet", 'w') if Oxidized.config.input.debug?
+      @log = File.open(Oxidized::Config::Log + "/#{@node.ip}_telnet.log", 'w') if Oxidized.config.input.debug?
       port = vars(:telnet_port) || 23
 
+      # 相关参数
       telnet_opts = {
         'Host'    => @node.ip,
         'Port'    => port.to_i,
@@ -30,10 +33,12 @@ module Oxidized
       connected?
     end
 
+    # 判定是否已经登录
     def connected?
       @telnet && (not @telnet.sock.closed?)
     end
 
+    # 脚本下发
     def cmd(cmd_str, expect = @node.prompt)
       Oxidized.logger.debug "Telnet: #{cmd_str} @#{@node.name}"
       return send(cmd_str + "\r\n") unless expect
@@ -46,24 +51,29 @@ module Oxidized
       out
     end
 
+    # 脚本下发 -- 不关心回显
     def send(data)
       @telnet.write data
     end
 
+    # 设备回显
     def output
       @telnet.output
     end
 
     private
 
+    # 回显捕捉
     def expect(regex)
       @telnet.oxidized_expect expect: regex, timeout: @timeout
     end
 
+    # 关闭会话
     def disconnect
       disconnect_cli
       @telnet.close
     rescue Errno::ECONNRESET
+      # Ignored
     ensure
       @log.close if Oxidized.config.input.debug?
       (@telnet.close rescue true) unless @telnet.sock.closed?

@@ -3,12 +3,15 @@ module Oxidized
   require 'oxidized/input/input'
   require 'oxidized/output/output'
   require 'oxidized/source/source'
+
   class Manager
     class << self
+      # 动态实例化模块 -- 模块如果实现 setup 方法则自动装配
       def load(dir, file)
         require File.join dir, file + '.rb'
         klass = nil
         [Oxidized, Object].each do |mod|
+          # casecmp 字符串不区分大小写比较
           klass   = mod.constants.find { |const| const.to_s.casecmp(file).zero? }
           klass ||= mod.constants.find { |const| const.to_s.downcase == 'oxidized' + file.downcase }
           klass   = mod.const_get klass if klass
@@ -16,12 +19,15 @@ module Oxidized
         end
         i = klass.new
         i.setup if i.respond_to? :setup
+
+        # 用于 merge 数据
         { file => klass }
       rescue LoadError
         false
       end
     end
 
+    # 实例属性 -- 缺省设置为空哈希
     attr_reader :input, :output, :source, :model, :hook
 
     def initialize

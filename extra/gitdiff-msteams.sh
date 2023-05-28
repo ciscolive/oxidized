@@ -18,10 +18,9 @@
 
 weburl="https://contoso.webhook.office.com/webhookb2/etc etc etc"
 
-postdata()
-{
-    COMMIT=$(git --bare --git-dir="${OX_REPO_NAME}" show --pretty='' --no-color "${OX_REPO_COMMITREF}" | jq --raw-input --slurp --compact-output)
-    cat <<EOF
+postdata() {
+  COMMIT=$(git --bare --git-dir="${OX_REPO_NAME}" show --pretty='' --no-color "${OX_REPO_COMMITREF}" | jq --raw-input --slurp --compact-output)
+  cat <<EOF
 {
    "type":"message",
    "attachments":[
@@ -87,5 +86,5 @@ EOF
 }
 
 curl -i \
--H "Content-Type: application/json" \
--X POST --data "$(postdata)" "${weburl}"
+  -H "Content-Type: application/json" \
+  -X POST --data "$(postdata)" "${weburl}"

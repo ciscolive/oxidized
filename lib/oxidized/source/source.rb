@@ -7,6 +7,7 @@ module Oxidized
       @group_map = (Oxidized.config.group_map || {})
     end
 
+    # 加载配置文件的模型和属组信息
     def map_model(model)
       @model_map.has_key?(model) ? @model_map[model] : model
     end
@@ -15,6 +16,7 @@ module Oxidized
       @group_map.has_key?(group) ? @group_map[group] : group
     end
 
+    # 变量插值
     def node_var_interpolate(var)
       case var
       when "nil"   then nil

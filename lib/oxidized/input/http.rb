@@ -6,13 +6,14 @@ module Oxidized
   class HTTP < Input
     include Input::CLI
 
+    # 新建会话
     def connect(node)
       @node = node
       @secure = false
       @username = nil
       @password = nil
       @headers = {}
-      @log = File.open(Oxidized::Config::Log + "/#{@node.ip}-http", "w") if Oxidized.config.input.debug?
+      @log = File.open(Oxidized::Config::Log + "/#{@node.ip}_http.log", "w") if Oxidized.config.input.debug?
       @node.model.cfg["http"].each { |cb| instance_exec(&cb) }
 
       return true unless @main_page && defined?(login)
@@ -23,22 +24,26 @@ module Oxidized
         raise OxidizedError, "mechanize not found: sudo gem install mechanize"
       end
 
+      # 实例化 Mechanize 对象
       @m = Mechanize.new
       url = URI::HTTP.build host: @node.ip, path: @main_page
       @m_page = @m.get(url.to_s)
       login
     end
 
+    # 执行脚本
     def cmd(callback_or_string)
       return cmd_cb callback_or_string if callback_or_string.is_a?(Proc)
 
       cmd_str callback_or_string
     end
 
+    # cmd 回调函数
     def cmd_cb(callback)
       instance_exec(&callback)
     end
 
+    # 请求 http 接口
     def cmd_str(string)
       path = string % { password: @node.auth[:password] }
       get_http path
@@ -46,6 +51,7 @@ module Oxidized
 
     private
 
+    # 发起 HTTP 请求
     def get_http(path)
       schema = @secure ? "https://" : "http://"
       uri = URI("#{schema}#{@node.ip}#{path}")
@@ -61,10 +67,12 @@ module Oxidized
       res.body
     end
 
+    # 打印日志
     def log(str)
       @log&.write(str)
     end
 
+    # 关闭会话
     def disconnect
       @log.close if Oxidized.config.input.debug?
     end

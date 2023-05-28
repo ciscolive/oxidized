@@ -2,21 +2,22 @@ class IOS < Oxidized::Model
   using Refinements
 
   prompt /^([\w.@()-]+[#>]\s?)$/
-  comment  '! '
+  comment '! '
 
   # example how to handle pager
-  # expect /^\s--More--\s+.*$/ do |data, re|
-  #  send ' '
-  #  data.sub re, ''
-  # end
+  expect /^\s--More--\s+.*$/ do |data, re|
+    send ' '
+    data.sub re, ''
+  end
 
   # non-preferred way to handle additional PW prompt
-  # expect /^[\w.]+>$/ do |data|
-  #  send "enable\n"
-  #  send vars(:enable) + "\n"
-  #  data
-  # end
+  expect /^[\w.]+>$/ do |data|
+    send "enable\n"
+    send vars(:enable) + "\n"
+    data
+  end
 
+  # 所有脚本输出必须处理的逻辑 -- 字串裁剪
   cmd :all do |cfg|
     # cfg.gsub! /\cH+\s{8}/, ''         # example how to handle pager
     # cfg.gsub! /\cH+/, ''              # example how to handle pager
@@ -25,6 +26,7 @@ class IOS < Oxidized::Model
     cfg.cut_both
   end
 
+  # 数据脱敏
   cmd :secret do |cfg|
     cfg.gsub! /^(snmp-server community).*/, '\\1 <configuration removed>'
     cfg.gsub! /^(snmp-server host \S+( vrf \S+)?( informs?)?( version (1|2c|3 (noauth|auth|priv)))?)\s+\S+((\s+\S*)*)\s*/, '\\1 <secret hidden> \\7'
@@ -47,6 +49,7 @@ class IOS < Oxidized::Model
     cfg
   end
 
+  # 查看设备版本并注释
   cmd 'show version' do |cfg|
     comments = []
     comments << cfg.lines.first
@@ -96,6 +99,10 @@ class IOS < Oxidized::Model
     comment comments.join "\n"
   end
 
+  # 查看 vtp 状态并注释
+  # 注释空白行
+  # 裁剪 配置更新 时间
+  # 如果 cfg 为空则设定为空
   cmd 'show vtp status' do |cfg|
     cfg.gsub! /^$\n/, ''
     cfg.gsub! /Configuration last modified by.*\n/, ''
@@ -103,13 +110,16 @@ class IOS < Oxidized::Model
     comment "#{cfg}\n"
   end
 
+  # 查看设备模块并注释
   cmd 'show inventory' do |cfg|
     comment cfg
   end
 
+  # 查看设备运行配置
   post do
     cmd_line = 'show running-config'
     cmd_line += ' view full' if vars(:ios_rbac)
+    # 执行脚本并裁剪修正
     cmd cmd_line do |cfg|
       cfg = cfg.each_line.to_a[3..-1]
       cfg = cfg.reject { |line| line.match /^ntp clock-period / }.join
@@ -122,11 +132,13 @@ class IOS < Oxidized::Model
     end
   end
 
+  # 设置 telnet 账户登录参数
   cfg :telnet do
     username /^Username:/i
     password /^Password:/i
   end
 
+  # 设置 telnet ssh 钩子函数相关参数
   cfg :telnet, :ssh do
     # preferred way to handle additional passwords
     post_login do

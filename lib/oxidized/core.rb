@@ -15,7 +15,9 @@ module Oxidized
       raise NoNodesFound, 'source returns no usable nodes' if nodes.size.zero?
 
       @worker = Worker.new nodes
+      # HUP 信号通常用于重启或重新加载配置文件。通过使用 trap 方法，你可以捕获和处理指定的信号，执行相应的操作
       trap('HUP') { nodes.load }
+
       if Oxidized.config.rest?
         begin
           require 'oxidized/web'
@@ -23,6 +25,7 @@ module Oxidized
           raise OxidizedError, 'oxidized-web not found: sudo gem install oxidized-web - \
           or disable web support by setting "rest: false" in your configuration'
         end
+        # 启动 web 端
         @rest = API::Web.new nodes, Oxidized.config.rest
         @rest.run
       end

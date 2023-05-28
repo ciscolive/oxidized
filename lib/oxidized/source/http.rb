@@ -1,16 +1,23 @@
 module Oxidized
   class HTTP < Source
     def initialize
-      @cfg = Oxidized.config.source.http
       super
+      @cfg = Oxidized.config.source.http
     end
 
     def setup
       return unless @cfg.url.empty?
 
+      Oxidized.asetus.user.source.http.url = 'http://www.example.com/devices'
+      Oxidized.asetus.user.source.http.user = 'username'
+      Oxidized.asetus.user.source.http.pass = 'password'
+      Oxidized.asetus.user.source.http.map.name = 0
+      Oxidized.asetus.user.source.http.map.model = 1
+      Oxidized.asetus.save :user
       raise NoConfig, 'no source http url config, edit ~/.config/oxidized/config'
     end
 
+    # 加载依赖
     require "net/http"
     require "net/https"
     require "uri"
@@ -28,6 +35,7 @@ module Oxidized
         @cfg.map.each do |key, want_position|
           keys[key.to_sym] = node_var_interpolate string_navigate(node, want_position)
         end
+        # 设置设备分组和模型
         keys[:model] = map_model keys[:model] if keys.has_key? :model
         keys[:group] = map_group keys[:group] if keys.has_key? :group
 
@@ -38,6 +46,7 @@ module Oxidized
         end
         keys[:vars] = vars unless vars.empty?
 
+        # 数据压入数组
         nodes << keys
       end
       nodes
@@ -47,6 +56,7 @@ module Oxidized
 
     def string_navigate(object, wants)
       wants = wants.split(".").map do |want|
+        # 根据正则切割字串，输出匹配前、命中正则和匹配后的字串
         head, match, _tail = want.partition(/\[\d+\]/)
         match.empty? ? head : [head, match[1..-2].to_i]
       end

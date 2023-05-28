@@ -1,12 +1,17 @@
 class CiscoSMB < Oxidized::Model
+  # 加载项目字符串方法
   using Refinements
 
   # Cisco Small Business 300, 500, and ESW2 series switches
   # http://www.cisco.com/c/en/us/support/switches/small-business-300-series-managed-switches/products-release-notes-list.html
-
+  # 设备登录成功提示符
   prompt /^\r?([\w.@()-]+[#>]\s?)$/
+
+  # 配置注释符号
   comment  '! '
 
+  # 每个脚本输出执行字符串处理规则
+  # 去除脚本输出首尾字符串
   cmd :all do |cfg|
     lines = cfg.each_line.to_a[1..-2]
     # Remove \r from beginning of response
@@ -14,6 +19,7 @@ class CiscoSMB < Oxidized::Model
     lines.join
   end
 
+  # 脚本脱敏
   cmd :secret do |cfg|
     cfg.gsub! /^(snmp-server community).*/, '\\1 <configuration removed>'
     cfg.gsub! /username (\S+) privilege (\d+) (\S+).*/, '<secret hidden>'
@@ -27,6 +33,7 @@ class CiscoSMB < Oxidized::Model
     cfg
   end
 
+  # 查询设备版本
   cmd 'show version' do |cfg|
     cfg.gsub! /.*Uptime for this control.*/, ''
     cfg.gsub! /.*System restarted.*/, ''
@@ -34,10 +41,12 @@ class CiscoSMB < Oxidized::Model
     comment cfg
   end
 
+  # 查询启动环境
   cmd 'show bootvar' do |cfg|
     comment cfg
   end
 
+  # 查询设备运行配置
   cmd 'show running-config' do |cfg|
     cfg = cfg.each_line.to_a[0..-1].join
     cfg.gsub! /^Current configuration : [^\n]*\n/, ''
@@ -48,10 +57,12 @@ class CiscoSMB < Oxidized::Model
     cfg
   end
 
+  # 设置设备登录账户信息
   cfg :telnet, :ssh do
     username /User ?[nN]ame:/
     password /^\r?Password:/
 
+    # 登录成功钩子函数脚本
     post_login do
       if vars(:enable) == true
         cmd 'enable'
@@ -65,6 +76,5 @@ class CiscoSMB < Oxidized::Model
     post_login 'terminal width 0'
     post_login 'terminal len 0'
     pre_logout 'exit' # exit returns to previous priv level, no way to quit from exec(#)
-    pre_logout 'exit'
   end
 end

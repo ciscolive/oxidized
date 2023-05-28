@@ -2,6 +2,7 @@ module Oxidized
   require 'oxidized/job'
   require 'oxidized/jobs'
   class Worker
+    # 实例化函数 -- 线程异常则跳出
     def initialize(nodes)
       @jobs_done  = 0
       @nodes      = nodes
@@ -19,10 +20,10 @@ module Oxidized
       while @jobs.size < @jobs.want
         Oxidized.logger.debug "lib/oxidized/worker.rb: Jobs running: #{@jobs.size} of #{@jobs.want} - ended: #{@jobs_done} of #{@nodes.size}"
         # ask for next node in queue non destructive way
-        nextnode = @nodes.first
-        unless nextnode.last.nil?
+        next_node = @nodes.first
+        unless next_node.last.nil?
           # Set unobtainable value for 'last' if interval checking is disabled
-          last = Oxidized.config.interval.zero? ? Time.now.utc + 10 : nextnode.last.end
+          last = Oxidized.config.interval.zero? ? Time.now.utc + 10 : next_node.last.end
           break if last + Oxidized.config.interval > Time.now.utc
         end
         # shift nodes and get the next node

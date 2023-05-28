@@ -7,11 +7,11 @@ module Oxidized
     Root      = ENV['OXIDIZED_HOME'] || File.join(Dir.home, '.config', 'oxidized')
     Crash     = File.join(ENV['OXIDIZED_LOGS'] || Root, 'crash')
     Log       = File.join(ENV['OXIDIZED_LOGS'] || Root, 'logs')
-    InputDir  = File.join Directory, %w[lib oxidized input]
-    OutputDir = File.join Directory, %w[lib oxidized output]
-    ModelDir  = File.join Directory, %w[lib oxidized model]
-    SourceDir = File.join Directory, %w[lib oxidized source]
-    HookDir   = File.join Directory, %w[lib oxidized hook]
+    InputDir  = File.join(Directory, %w[lib oxidized input])
+    OutputDir = File.join(Directory, %w[lib oxidized output])
+    ModelDir  = File.join(Directory, %w[lib oxidized model])
+    SourceDir = File.join(Directory, %w[lib oxidized source])
+    HookDir   = File.join(Directory, %w[lib oxidized hook])
     Sleep     = 1
 
     def self.load(cmd_opts = {})
@@ -24,6 +24,7 @@ module Oxidized
       asetus.default.resolve_dns   = true # if false, don't resolve DNS to IP
       asetus.default.interval      = 3600
       asetus.default.use_syslog    = false
+      asetus.default.remove_secret = true
       asetus.default.debug         = false
       asetus.default.threads       = 30
       asetus.default.use_max_threads = false
@@ -49,7 +50,7 @@ module Oxidized
       asetus.default.input.utf8_encoded = true  # configuration is utf8 encoded or ascii-8bit
 
       asetus.default.output.default = 'file'  # file, git
-      asetus.default.source.default = 'csv'   # csv, sql
+      asetus.default.source.default = 'csv'   # csv, sql, http
 
       asetus.default.model_map = {
         'juniper' => 'junos',
@@ -64,7 +65,7 @@ module Oxidized
 
       raise NoConfig, 'edit ~/.config/oxidized/config' if asetus.create
 
-      # override if comand line flag given
+      # override if command line flag given
       asetus.cfg.debug = cmd_opts[:debug] if cmd_opts[:debug]
 
       asetus

@@ -25,59 +25,57 @@ test -x $DAEMON || exit 0
 . /lib/lsb/init-functions
 
 if [ -r /etc/default/$NAME ]; then
-	. /etc/default/$NAME
+  . /etc/default/$NAME
 fi
 
 PIDFILE=/var/run/$NAME.pid
 
-do_start()
-{
-        start-stop-daemon --start --quiet --background --pidfile $PIDFILE --make-pidfile  \
-        --oknodo --chuid $USER --exec $DAEMON
+do_start() {
+  start-stop-daemon --start --quiet --background --pidfile $PIDFILE --make-pidfile \
+    --oknodo --chuid $USER --exec $DAEMON
 }
 
-do_stop()
-{
-        start-stop-daemon --oknodo --stop --quiet -v --pidfile $PIDFILE \
-        --chuid $USER --retry KILL/10
+do_stop() {
+  start-stop-daemon --oknodo --stop --quiet -v --pidfile $PIDFILE \
+    --chuid $USER --retry KILL/10
 }
 
 case "$1" in
-  start)
-        if [ "$ENABLED" = "no" ]; then
-                log_failure_msg "Not starting $DESC: disabled via /etc/default/$NAME"
-                exit 0
-        fi
+start)
+  if [ "$ENABLED" = "no" ]; then
+    log_failure_msg "Not starting $DESC: disabled via /etc/default/$NAME"
+    exit 0
+  fi
 
-        log_daemon_msg "Starting $DESC..." "$NAME"
-        if do_start ; then
-                log_end_msg 0
-        else
-                log_end_msg 1
-        fi
-        ;;
-  stop)
-        log_daemon_msg "Stopping $DESC..." "$NAME"
-        if do_stop ; then
-                log_end_msg 0
-        else
-                log_end_msg 1
-        fi
-        ;;
+  log_daemon_msg "Starting $DESC..." "$NAME"
+  if do_start; then
+    log_end_msg 0
+  else
+    log_end_msg 1
+  fi
+  ;;
+stop)
+  log_daemon_msg "Stopping $DESC..." "$NAME"
+  if do_stop; then
+    log_end_msg 0
+  else
+    log_end_msg 1
+  fi
+  ;;
 
-  restart|force-reload)
-        $0 stop
-        sleep 1
-        $0 start
-        ;;
-  status)
-	status_of_proc -p $PIDFILE $DAEMON $NAME
-	;;
-  *)
-	N=/etc/init.d/$NAME
-	echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
-	exit 1
-	;;
+restart | force-reload)
+  $0 stop
+  sleep 1
+  $0 start
+  ;;
+status)
+  status_of_proc -p $PIDFILE $DAEMON $NAME
+  ;;
+*)
+  N=/etc/init.d/$NAME
+  echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
+  exit 1
+  ;;
 esac
 
 exit 0

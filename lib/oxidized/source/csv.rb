@@ -1,8 +1,8 @@
 module Oxidized
   class CSV < Source
     def initialize
-      @cfg = Oxidized.config.source.csv
       super
+      @cfg = Oxidized.config.source.csv
     end
 
     def setup
@@ -21,8 +21,10 @@ module Oxidized
     def load(_node_want = nil)
       nodes = []
       open_file.each_line do |line|
+        # 跳过注解行
         next if line =~ /^\s*#/
 
+        # 去除换行符并切割字串，保留所有的空白栏数据。如果数据为空则跳过
         data = line.chomp.split(@cfg.delimiter, -1)
         next if data.empty?
 
@@ -31,6 +33,7 @@ module Oxidized
         @cfg.map.each do |key, position|
           keys[key.to_sym] = node_var_interpolate data[position]
         end
+        # 设定节点的模型和属组
         keys[:model] = map_model keys[:model] if keys.has_key? :model
         keys[:group] = map_group keys[:group] if keys.has_key? :group
 

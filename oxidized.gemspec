@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'net-ssh',      '~> 7.1'
   s.add_runtime_dependency 'net-telnet',   '~> 0.2'
   s.add_runtime_dependency 'rugged',       '~> 1.6'
+  s.add_runtime_dependency 'sequel',       '~> 5.68'
   s.add_runtime_dependency 'slop',         '~> 4.6'
 
   s.add_development_dependency 'bundler',             '~> 2.2'

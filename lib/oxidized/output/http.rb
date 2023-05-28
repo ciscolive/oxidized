@@ -2,11 +2,13 @@ module Oxidized
   class Http < Output
     attr_reader :commitref
 
+    # 初始化函数
     def initialize
       super
       @cfg = Oxidized.config.output.http
     end
 
+    # 自动装配
     def setup
       return unless @cfg.empty?
 
@@ -14,13 +16,16 @@ module Oxidized
       CFGS.user.output.http.pasword = 'secret'
       CFGS.user.output.http.url = 'http://localhost/web-api/oxidized'
       CFGS.save :user
+
       raise NoConfig, 'no output http config, edit ~/.config/oxidized/config'
     end
 
+    # 自动加载模块
     require "net/http"
     require "uri"
     require "json"
 
+    # 配置转储 -- HTTP 传输到外部
     def store(node, outputs, opt = {})
       @commitref = nil
       uri = URI.parse @cfg.url
@@ -32,13 +37,13 @@ module Oxidized
       response = http.request req
 
       case response.code.to_i
-      when 200 || 201
+      when 200..201
         Oxidized.logger.info "Configuration http backup complete for #{node}"
         p [:success]
-      when (400..499)
+      when 400..499
         Oxidized.logger.info "Configuration http backup for #{node} failed status: #{response.body}"
         p [:bad_request]
-      when (500..599)
+      when 500..599
         p [:server_problems]
         Oxidized.logger.info "Configuration http backup for #{node} failed status: #{response.body}"
       end
@@ -46,6 +51,7 @@ module Oxidized
 
     private
 
+    # 生成 JSON 数据
     def generate_json(node, outputs, opt)
       JSON.pretty_generate(
         'msg'    => opt[:msg],

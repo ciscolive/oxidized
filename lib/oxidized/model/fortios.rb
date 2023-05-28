@@ -1,20 +1,26 @@
 class FortiOS < Oxidized::Model
+  # 加载项目字符串方法
   using Refinements
 
+  # 脚本注释符号
   comment '# '
 
+  # 登录设备成功提示符
   prompt /^([-\w.~]+(\s[(\w\-.)]+)?~?\s?[#>$]\s?)$/
 
+  # 交互执行脚本 -- 自动加载更多配置
   expect /^--More--\s$/ do |data, re|
     send ' '
     data.sub re, ''
   end
 
+  # 所有输出均需要处理的逻辑
   cmd :all do |cfg, cmdstring|
     new_cfg = comment "COMMAND: #{cmdstring}\n"
     new_cfg << cfg.each_line.to_a[1..-2].map { |line| line.gsub(/(conf_file_ver=)(.*)/, '\1<stripped>\3') }.join
   end
 
+  # 数据脱敏逻辑
   cmd :secret do |cfg|
     # ENC indicates an encrypted password, and secret indicates a secret string
     cfg.gsub! /(set .+ ENC) .+/, '\\1 <configuration removed>'
@@ -28,6 +34,7 @@ class FortiOS < Oxidized::Model
     cfg
   end
 
+  # 查询设备运行配置
   cmd 'get system status' do |cfg|
     @vdom_enabled = cfg.match /Virtual domain configuration: (enable|multiple)/
     cfg.gsub! /(System time:).*/, '\\1 <stripped>'
@@ -44,13 +51,16 @@ class FortiOS < Oxidized::Model
 
   post do
     cfg = []
+    # 如果启用 vdom 切入全局配置
     cfg << cmd('config global') if @vdom_enabled
 
+    # 查看设备 HA 状态
     cfg << cmd('get system ha status') do |cfg_ha|
       cfg_ha = cfg_ha.each_line.select { |line| line.match /^(HA Health Status|Mode|Model|Master|Slave|Primary|Secondary|# COMMAND)(\s+)?:/ }.join
       comment cfg_ha
     end
 
+    # 查看设备硬件属性
     cfg << cmd('get hardware status') do |cfg_hw|
       comment cfg_hw
     end
@@ -77,11 +87,13 @@ class FortiOS < Oxidized::Model
     cfg.join
   end
 
+  # 设置 telnet 账户认证参数
   cfg :telnet do
     username /^[lL]ogin:/
     password /^Password:/
   end
 
+  # 设备登录钩子函数配置
   cfg :telnet, :ssh do
     pre_logout "exit\n"
   end

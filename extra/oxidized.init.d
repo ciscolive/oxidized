@@ -19,33 +19,32 @@ export OXIDIZED_HOME=/etc/oxidized
 [ -r /etc/sysconfig/$name ] && . /etc/sysconfig/$name
 
 start() {
-    echo -n $"Starting $desc: "
-    daemon ${cmd} ${args}
-    retval=$?
-    if [ $retval = 0 ]
-    then
-        echo_success
-        touch $lockfile
-    else
-        echo_failure
-    fi
-    echo
-    return $retval
+  echo -n $"Starting $desc: "
+  daemon ${cmd} ${args}
+  retval=$?
+  if [ $retval = 0 ]; then
+    echo_success
+    touch $lockfile
+  else
+    echo_failure
+  fi
+  echo
+  return $retval
 }
 
 stop() {
-    echo -n $"Stopping $desc: "
-    killproc -p $pidfile
-    retval=$?
-    [ $retval -eq 0 ] && rm -f $lockfile
-    rm -f $pidfile
-    echo
-    return $retval
+  echo -n $"Stopping $desc: "
+  killproc -p $pidfile
+  retval=$?
+  [ $retval -eq 0 ] && rm -f $lockfile
+  rm -f $pidfile
+  echo
+  return $retval
 }
 
 restart() {
-    stop
-    start
+  stop
+  start
 }
 
 reload() {
@@ -55,33 +54,34 @@ reload() {
 }
 
 rh_status() {
-    status -p $pidfile $cmd
+  status -p $pidfile $cmd
 }
 
 rh_status_q() {
-    rh_status >/dev/null 2>&1
+  rh_status >/dev/null 2>&1
 }
 
 case "$1" in
-    start)
-        rh_status_q && exit 0
-        $1
-        ;;
-    stop)
-        rh_status_q || exit 0
-        $1
-        ;;
-    restart)
-        $1
-        ;;
-    reload)
-        rh_status_q || exit 0
-        $1
-        ;;
-    status)
-        rh_status
-        ;;
-    *)
-        echo $"Usage: $0 {start|stop|restart|reload|status}"
-        exit 2
+start)
+  rh_status_q && exit 0
+  $1
+  ;;
+stop)
+  rh_status_q || exit 0
+  $1
+  ;;
+restart)
+  $1
+  ;;
+reload)
+  rh_status_q || exit 0
+  $1
+  ;;
+status)
+  rh_status
+  ;;
+*)
+  echo $"Usage: $0 {start|stop|restart|reload|status}"
+  exit 2
+  ;;
 esac

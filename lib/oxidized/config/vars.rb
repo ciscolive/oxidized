@@ -1,5 +1,6 @@
 module Oxidized::Config::Vars
   # convenience method for accessing node, group or global level user variables
+  # 获取节点实例变量，优先级：节点>属组_模块>属组>模块>全局配置
   def vars(name)
     model_name = @node.model.class.name.to_s.downcase
     if @node.vars&.has_key?(name)

@@ -3,6 +3,7 @@ module Oxidized
   require 'net/ssh/proxy/command'
   require 'timeout'
   require 'oxidized/input/cli'
+
   class SSH < Input
     RescueFail = {
       debug: [
@@ -16,12 +17,15 @@ module Oxidized
     include Input::CLI
     class NoShell < OxidizedError; end
 
+    # 连接设备 -- 必须提供节点信息
+    # 设置终端信息
     def connect(node)
       @node        = node
       @output      = ''
       @pty_options = { term: "vt100" }
+      # SSH 会话相关配置 -- 比如设置登录权限账户等
       @node.model.cfg['ssh'].each { |cb| instance_exec(&cb) }
-      @log = File.open(Oxidized::Config::Log + "/#{@node.ip}-ssh", 'w') if Oxidized.config.input.debug?
+      @log = File.open(Oxidized::Config::Log + "/#{@node.ip}_ssh.log", 'w') if Oxidized.config.input.debug?
 
       Oxidized.logger.debug "lib/oxidized/input/ssh.rb: Connecting to #{@node.name}"
       @ssh = Net::SSH.start(@node.ip, @node.auth[:username], make_ssh_opts)
@@ -36,10 +40,12 @@ module Oxidized
       connected?
     end
 
+    # 是否已经连接设备
     def connected?
       @ssh && (not @ssh.closed?)
     end
 
+    # 通过 SSH 下发脚本，支持交互式逻辑
     def cmd(cmd, expect = node.prompt)
       Oxidized.logger.debug "lib/oxidized/input/ssh.rb #{cmd} @ #{node.name} with expect: #{expect.inspect}"
       if @exec
@@ -49,28 +55,34 @@ module Oxidized
       end
     end
 
+    # 直接发送脚本不捕捉回显
     def send(data)
       @ses.send_data data
     end
 
+    # 类对象属性
     attr_reader :output
 
+    # 支持伪终端
     def pty_options(hash)
       @pty_options = @pty_options.merge hash
     end
 
     private
 
+    # 关闭会话
     def disconnect
       disconnect_cli
       # if disconnect does not disconnect us, give up after timeout
       Timeout.timeout(Oxidized.config.timeout) { @ssh.loop }
     rescue Errno::ECONNRESET, Net::SSH::Disconnect, IOError
+      # Ignored
     ensure
       @log.close if Oxidized.config.input.debug?
       (@ssh.close rescue true) unless @ssh.closed?
     end
 
+    # 新建 SSH 会话 -- channel
     def shell_open(ssh)
       @ses = ssh.open_channel do |ch|
         ch.on_data do |_ch, data|
@@ -79,8 +91,12 @@ module Oxidized
             @log.flush
           end
           @output << data
+
+          # 动态交互式执行脚本 -- 输入账户密码、判定是否登录成功等
           @output = @node.model.expects @output
         end
+
+        # 异步打开一个伪终端
         ch.request_pty(@pty_options) do |_ch, success_pty|
           raise NoShell, "Can't get PTY" unless success_pty
 
@@ -91,12 +107,14 @@ module Oxidized
       end
     end
 
+    # 执行状态
     def exec(state = nil)
       return nil if vars(:ssh_no_exec)
 
       state.nil? ? @exec : (@exec = state)
     end
 
+    # 交互式执行脚本
     def cmd_shell(cmd, expect_re)
       @output = ''
       @ses.send_data cmd + "\n"
@@ -105,13 +123,16 @@ module Oxidized
       @output
     end
 
+    # 交互式捕捉运行时回显
     def expect(*regexps)
       regexps = [regexps].flatten
       Oxidized.logger.debug "lib/oxidized/input/ssh.rb: expecting #{regexps.inspect} at #{node.name}"
+
+      # 设定计时器 -- 有效时间内完成正则捕捉
       Timeout.timeout(Oxidized.config.timeout) do
         @ssh.loop(0.1) do
           sleep 0.1
-          match = regexps.find { |regexp| @output.match regexp }
+          match = regexps.find { |regexp| @output.match(regexp) }
           return match if match
 
           true
@@ -119,6 +140,7 @@ module Oxidized
       end
     end
 
+    # 生成 SSH 会话参数
     def make_ssh_opts
       secure = Oxidized.config.input.ssh.secure?
       ssh_opts = {
@@ -134,7 +156,7 @@ module Oxidized
 
       auth_methods = vars(:auth_methods) || %w[none publickey password]
       ssh_opts[:auth_methods] = auth_methods
-      Oxidized.logger.debug "AUTH METHODS::#{auth_methods}"
+      Oxidized.logger.debug "AUTH METHODS::#{auth_methods.inspect}"
 
       ssh_opts[:proxy] = make_ssh_proxy_command(vars(:ssh_proxy), vars(:ssh_proxy_port), secure) if vars(:ssh_proxy)
 
@@ -152,6 +174,7 @@ module Oxidized
       ssh_opts
     end
 
+    # SSH 代理脚本
     def make_ssh_proxy_command(proxy_host, proxy_port, secure)
       return nil unless !proxy_host.nil? && !proxy_host.empty?
 

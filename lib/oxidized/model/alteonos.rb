@@ -1,10 +1,17 @@
 class ALTEONOS < Oxidized::Model
+  # 加载项目定义的字符串方法
   using Refinements
 
+  # 设定设备登录成功提示符
+  # (user@host) $
+  # root#
+  # user>
   prompt  /^\(?.+\)?\s?[#>]/
 
+  # 设置注解
   comment '! '
 
+  # 设定脱敏信息
   cmd :secret do |cfg|
     cfg.gsub!(/^([\s\t]*admpw ).*/, '\1 <password removed>')
     cfg.gsub!(/^([\s\t]*pswd ).*/, '\1 <password removed>')
@@ -27,6 +34,7 @@ class ALTEONOS < Oxidized::Model
   #                                                                                            #
   ##############################################################################################
 
+  # 打印设备运行配置
   cmd 'cfg/dump' do |cfg|
     cfg.gsub! /^([\s\t\/*]*Configuration).*/, ''
     cfg.gsub! /^([\s\t\/*]*Version).*/, ''
@@ -36,6 +44,7 @@ class ALTEONOS < Oxidized::Model
     cfg
   end
 
+  # SSH 执行脚本期间自动交互式响应 -> Oxidized::Model#expects
   # Answer for Dispay private keys
   expect /^Display private keys\?\s?\[y\/n\]: $/ do |data, re|
     send "n\r"
@@ -54,6 +63,7 @@ class ALTEONOS < Oxidized::Model
     data.sub re, ''
   end
 
+  # 登出前执行 exit
   cfg :ssh do
     pre_logout 'exit'
   end

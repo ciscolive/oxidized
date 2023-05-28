@@ -29,7 +29,7 @@ module Oxidized
     end
 
     def crash(error)
-      Oxidized.logger.fatal "Oxidized crashed, crashfile written in #{Config::Crash}"
+      Oxidized.logger.fatal "Oxidized crashed, crash_file written in #{Config::Crash}"
       File.open Config::Crash, 'w' do |file|
         file.puts '-' * 50
         file.puts Time.now.utc

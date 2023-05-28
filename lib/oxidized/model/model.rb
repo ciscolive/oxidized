@@ -4,20 +4,24 @@ require_relative 'outputs'
 module Oxidized
   class Model
     using Refinements
-
+    # 加载其他模块方法
     include Oxidized::Config::Vars
 
+    # Oxidized::Model 类方法
     class << self
+      # 重写继承方法逻辑
       def inherited(klass)
         super
+
         if klass.superclass == Oxidized::Model
-          klass.instance_variable_set '@cmd',     (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set '@cfg',     (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set '@procs',   (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set '@expect',  []
+          klass.instance_variable_set '@cmd', (Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set '@cfg', (Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set '@procs', (Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set '@expect', []
           klass.instance_variable_set '@comment', nil
-          klass.instance_variable_set '@prompt',  nil
-        else # we're subclassing some existing model, take its variables
+          klass.instance_variable_set '@prompt', nil
+        else
+          # we're subclassing some existing model, take its variables
           instance_variables.each do |var|
             iv = instance_variable_get(var)
             klass.instance_variable_set var, iv.dup
@@ -26,6 +30,7 @@ module Oxidized
         end
       end
 
+      # 模块注释行
       def comment(str = "# ")
         @comment = if block_given?
                      yield
@@ -36,40 +41,57 @@ module Oxidized
                    end
       end
 
+      # 设备登录提示符
       def prompt(regex = nil)
         @prompt = regex || @prompt
       end
 
+      # *methods 表示可变数量的方法名(符号)作为参数列表 -- 脚本容器
+      # **args 表示关键字参数 -- 逻辑判断
+      # &block 表示接收代码块 -- 交互逻辑
       def cfg(*methods, **args, &block)
         [methods].flatten.each do |method|
           process_args_block(@cfg[method.to_s], args, block)
         end
       end
 
+      # 设备脚本
       def cfgs
         @cfg
       end
 
+      # 执行脚本 -- 符号类型和字符串类型
+      # cmd_arg -- 实际要执行的脚本或脚本类型
+      # **args 关键字参数
       def cmd(cmd_arg = nil, **args, &block)
         if cmd_arg.instance_of?(Symbol)
           process_args_block(@cmd[cmd_arg], args, block)
         else
+          # 每个命令执行的代码块不一样，此处同时传递脚本和代码块
           process_args_block(@cmd[:cmd], args, [cmd_arg, block])
         end
         Oxidized.logger.debug "lib/oxidized/model/model.rb Added #{cmd_arg} to the commands list"
       end
 
+      # 模型相关脚本
       def cmds
         @cmd
       end
 
+      # 根据正则执行相关脚本
       def expect(regex, **args, &block)
         process_args_block(@expect, args, [regex, block])
       end
 
+      # 正则属性
       def expects
         @expect
       end
+
+      # @author Saku Ytti <saku@ytti.fi>
+      # @since 0.0.39
+      # @return [Hash] hash proc procs :pre+:post to be prepended/postfixed to output
+      attr_reader :procs
 
       # calls the block at the end of the model, prepending the output of the
       # block to the output string
@@ -93,13 +115,10 @@ module Oxidized
         process_args_block(@procs[:post], args, block)
       end
 
-      # @author Saku Ytti <saku@ytti.fi>
-      # @since 0.0.39
-      # @return [Hash] hash proc procs :pre+:post to be prepended/postfixed to output
-      attr_reader :procs
-
       private
 
+      # 根据入参类型动态执行 -- 默认往 target push 压入数据
+      # args -- 关键字参数
       def process_args_block(target, args, block)
         if args[:clear]
           if block.instance_of?(Array)
@@ -115,48 +134,69 @@ module Oxidized
       end
     end
 
+    # 实例属性
     attr_accessor :input, :node
 
+    # 执行脚本
     def cmd(string, &block)
       Oxidized.logger.debug "lib/oxidized/model/model.rb Executing #{string}"
+
+      # SSH 执行脚本期间支持正则表达式
       out = @input.cmd(string)
       return false unless out
 
       out = out.b unless Oxidized.config.input.utf8_encoded?
+
+      # 实例对象执行脚本期间 -- 修饰逻辑
+      # 将向代码块提供 |out, string| 参数
       self.class.cmds[:all].each do |all_block|
         out = instance_exec out, string, &all_block
       end
+
+      # 是否项目配置移除敏感信息属性
+      # 将向代码块提供 |out, string| 参数
       if vars :remove_secret
         self.class.cmds[:secret].each do |all_block|
           out = instance_exec out, string, &all_block
         end
       end
+
+      # 动态加载代码块逻辑 |out| -> block
+      # 将向代码块提供 |out| 参数
       out = instance_exec out, &block if block
       process_cmd_output out, string
     end
 
+    # 设备登录脚本输出
     def output
       @input.output
     end
 
+    # 交互执行脚本
     def send(data)
       @input.send data
     end
 
+    # 设定正则执行的代码块
     def expect(regex, &block)
       self.class.expect regex, &block
     end
 
+    # 设备相关的配置
     def cfg
       self.class.cfgs
     end
 
+    # 设备提示符
     def prompt
       self.class.prompt
     end
 
+    # 根据正则执行相关的回调
     def expects(data)
       self.class.expects.each do |re, cb|
+        # 根据回调函数的参数个数执行回调函数并将结果赋值给 data
+        # 同时传递脚本和正则表达式
         if data.match re
           data = cb.arity == 2 ? instance_exec([data, re], &cb) : instance_exec(data, &cb)
         end
@@ -164,25 +204,35 @@ module Oxidized
       data
     end
 
+    # 获取设备运行配置
     def get
       Oxidized.logger.debug 'lib/oxidized/model/model.rb Collecting commands\' outputs'
+      # 实例化脚本输出 -- 数组
       outputs = Outputs.new
       procs = self.class.procs
+
+      # 运行时脚本
       self.class.cmds[:cmd].each do |command, block|
         out = cmd command, &block
         return false unless out
 
         outputs << out
       end
+
+      # 前置脚本 -- 动态执行代码块
       procs[:pre].each do |pre_proc|
         outputs.unshift process_cmd_output(instance_eval(&pre_proc), '')
       end
+
+      # 后置脚本 -- 动态执行代码块
       procs[:post].each do |post_proc|
         outputs << process_cmd_output(instance_eval(&post_proc), '')
       end
+
       outputs
     end
 
+    # 为特定的字串输入注解符
     def comment(str)
       data = ''
       str.each_line do |line|
@@ -191,6 +241,7 @@ module Oxidized
       data
     end
 
+    # xml 配置注释
     def xmlcomment(str)
       # XML Comments start with <!-- and end with -->
       #
@@ -215,9 +266,10 @@ module Oxidized
 
     private
 
-    def process_cmd_output(output, name)
+    # 设置脚本信息
+    def process_cmd_output(output, command)
       output = String.new('') unless output.instance_of?(String)
-      output.set_cmd(name)
+      output.set_cmd(command)
       output
     end
   end

@@ -4,19 +4,22 @@ module Oxidized
 
     attr_reader :commitref
 
+    # 实例化函数
     def initialize
       super
       @cfg = Oxidized.config.output.file
     end
 
+    # 自动加载
     def setup
       return unless @cfg.empty?
 
-      Oxidized.asetus.user.output.file.directory = File.join(Config::Root, 'configs')
+      Oxidized.asetus.user.output.file.directory = File.join(Config::Root, 'backup_config')
       Oxidized.asetus.save :user
       raise NoConfig, 'no output file config, edit ~/.config/oxidized/config'
     end
 
+    # 将配置转储
     def store(node, outputs, opt = {})
       file = File.expand_path @cfg.directory
       file = File.join File.dirname(file), opt[:group] if opt[:group]
@@ -26,8 +29,9 @@ module Oxidized
       @commitref = file
     end
 
+    # 查询节点配置信息
     def fetch(node, group)
-      cfg_dir   = File.expand_path @cfg.directory
+      cfg_dir = File.expand_path @cfg.directory
       node_name = node.name
 
       if group # group is explicitly defined by user

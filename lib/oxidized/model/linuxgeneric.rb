@@ -1,7 +1,11 @@
 class LinuxGeneric < Oxidized::Model
+  # 加载项目字符串方法
   using Refinements
 
+  # 设备登录成功提示符
   prompt /^(\w.*|\W.*)(:|#) /
+
+  # 配置注释符号
   comment '# '
 
   # add a comment in the final conf
@@ -9,6 +13,7 @@ class LinuxGeneric < Oxidized::Model
     "\n###### #{comment} ######\n"
   end
 
+  # 所有脚本需要预处理的逻辑
   cmd :all do |cfg|
     cfg.gsub! /^(default (\S+).* (expires) ).*/, '\\1 <redacted>'
     cfg.cut_both
@@ -52,15 +57,18 @@ class LinuxGeneric < Oxidized::Model
     cfg
   end
 
+  # telnet 登录账户相关信息
   cfg :telnet do
     username /^Username:/
     password /^Password:/
   end
 
+  # 设备登录钩子函数相关参数
   cfg :telnet, :ssh do
+    # 登录成功后自动切换 su
     post_login do
       if vars(:enable) == true
-        cmd "sudo su -", /^\[sudo\] password/
+        cmd "sudo su -", /^\[sudo\].*?password/
         cmd @node.auth[:password]
       elsif vars(:enable)
         cmd "su -", /^Password:/
@@ -68,6 +76,7 @@ class LinuxGeneric < Oxidized::Model
       end
     end
 
+    # 退出前钩子
     pre_logout do
       cmd "exit" if vars(:enable)
     end
