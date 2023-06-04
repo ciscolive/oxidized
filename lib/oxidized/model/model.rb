@@ -9,10 +9,17 @@ module Oxidized
 
     # Oxidized::Model 类方法
     class << self
-      # 重写继承方法逻辑
+      # 重写继承方法逻辑 -- 元编程
       def inherited(klass)
         super
 
+        # 重写继承方法 -- 动态设置类变量
+        # Hash.new { |h, k| h[k] = [] } 是一个具有默认值的哈希表（Hash），其中默认值是一个空数组（[]）。
+        # 当访问哈希表中不存在的键时，将使用提供的块代码来生成默认值并将其分配给该键。
+        # 这意味着当你访问哈希表中不存在的键时，会自动创建一个空数组作为该键的默认值。
+
+        # Hash.new { |h, k| h[k] = [] } 可以提供动态创建默认值的功能，
+        # 而 Hash.new 只能提供静态的默认值。使用具有块的Hash.new 可以更方便地处理需要默认值为数组等可变对象的情况。
         if klass.superclass == Oxidized::Model
           klass.instance_variable_set '@cmd', (Hash.new { |h, k| h[k] = [] })
           klass.instance_variable_set '@cfg', (Hash.new { |h, k| h[k] = [] })
@@ -22,6 +29,7 @@ module Oxidized
           klass.instance_variable_set '@prompt', nil
         else
           # we're subclassing some existing model, take its variables
+          # 继承自其他子类模块
           instance_variables.each do |var|
             iv = instance_variable_get(var)
             klass.instance_variable_set var, iv.dup
@@ -60,15 +68,15 @@ module Oxidized
         @cfg
       end
 
-      # 执行脚本 -- 符号类型和字符串类型
+      # 执行脚本 -- 符号类型和字符串类型，支持正则表达式
       # cmd_arg -- 实际要执行的脚本或脚本类型
       # **args 关键字参数
-      def cmd(cmd_arg = nil, **args, &block)
+      def cmd(cmd_arg = nil, regex_re = nil, **args, &block)
         if cmd_arg.instance_of?(Symbol)
           process_args_block(@cmd[cmd_arg], args, block)
         else
           # 每个命令执行的代码块不一样，此处同时传递脚本和代码块
-          process_args_block(@cmd[:cmd], args, [cmd_arg, block])
+          process_args_block(@cmd[:cmd], args, [cmd_arg, regex_re, block])
         end
         Oxidized.logger.debug "lib/oxidized/model/model.rb Added #{cmd_arg} to the commands list"
       end
@@ -137,12 +145,12 @@ module Oxidized
     # 实例属性
     attr_accessor :input, :node
 
-    # 执行脚本
-    def cmd(string, &block)
+    # 执行脚本 -- 支持脚本输入后同时捕捉回显结果，如果未成功捕获则抛出异常
+    def cmd(string, regex_re = nil, &block)
       Oxidized.logger.debug "lib/oxidized/model/model.rb Executing #{string}"
 
-      # SSH 执行脚本期间支持正则表达式
-      out = @input.cmd(string)
+      # TODO: 执行脚本期间支持正则表达式 -- 如果未捕捉到回显则抛出异常
+      out = regex_re ? @input.cmd(string, regex_re) : @input.cmd(string)
       return false unless out
 
       out = out.b unless Oxidized.config.input.utf8_encoded?
@@ -162,7 +170,7 @@ module Oxidized
       end
 
       # 动态加载代码块逻辑 |out| -> block
-      # 将向代码块提供 |out| 参数
+      # 将脚本执行回显作为输入提供到代码块
       out = instance_exec out, &block if block
       process_cmd_output out, string
     end
@@ -177,7 +185,7 @@ module Oxidized
       @input.send data
     end
 
-    # 设定正则执行的代码块
+    # 设定正则执行的代码块 -- 设置正则表达式和代码块到 对象 @expects
     def expect(regex, &block)
       self.class.expect regex, &block
     end
@@ -209,11 +217,11 @@ module Oxidized
       Oxidized.logger.debug 'lib/oxidized/model/model.rb Collecting commands\' outputs'
       # 实例化脚本输出 -- 数组
       outputs = Outputs.new
-      procs = self.class.procs
+      procs   = self.class.procs
 
-      # 运行时脚本
-      self.class.cmds[:cmd].each do |command, block|
-        out = cmd command, &block
+      # 运行时脚本 -- 至上而下依次执行脚本
+      self.class.cmds[:cmd].each do |command, regex_re, block|
+        out = cmd command, regex_re, &block
         return false unless out
 
         outputs << out

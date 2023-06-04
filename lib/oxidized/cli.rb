@@ -19,6 +19,7 @@ module Oxidized
 
     private
 
+    # 实例化函数
     def initialize
       _args, @opts = parse_opts
 
@@ -29,10 +30,10 @@ module Oxidized
     end
 
     def crash(error)
-      Oxidized.logger.fatal "Oxidized crashed, crash_file written in #{Config::Crash}"
-      File.open Config::Crash, 'w' do |file|
+      Oxidized.logger.fatal "Oxidized crashed, crash_file written in #{Config::CRASH_DIR}"
+      File.open Config::CRASH_DIR, 'w' do |file|
         file.puts '-' * 50
-        file.puts Time.now.utc
+        file.puts Time.now.utc + (8 * 60 * 60)
         file.puts error.message + ' [' + error.class.to_s + ']'
         file.puts '-' * 50
         file.puts error.backtrace
@@ -44,15 +45,18 @@ module Oxidized
       opts = Slop.parse do |opt|
         opt.on '-d', '--debug', 'turn on debugging'
         opt.on '--daemonize', 'Daemonize/fork the process'
+        # 项目使用说明
         opt.on '-h', '--help', 'show usage' do
           puts opt
           exit
         end
-        opt.on '--show-exhaustive-config', 'output entire configuration, including defaults' do
+        # 项目详细配置
+        opt.on '-a', '--show-exhaustive-config', 'output entire configuration, including defaults' do
           asetus = Config.load
           puts asetus.to_yaml asetus.cfg
           Kernel.exit
         end
+        # 查看项目版本
         opt.on '-v', '--version', 'show version' do
           puts Oxidized::VERSION_FULL
           Kernel.exit
@@ -88,6 +92,8 @@ module Oxidized
         exit(1)
       when :dead
         File.delete(pidfile)
+      else
+        puts "Something wrong!"
       end
     end
 

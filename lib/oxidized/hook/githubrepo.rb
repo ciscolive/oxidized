@@ -79,9 +79,9 @@ class GithubRepo < Oxidized::Hook
   end
 
   def rugged_sshkey(args = {})
-    git_user   = args[:git_user]
-    privkey    = args[:privkey]
-    pubkey     = args[:pubkey] || (privkey + '.pub')
+    git_user = args[:git_user]
+    privkey  = args[:privkey]
+    pubkey   = args[:pubkey] || (privkey + '.pub')
     Rugged::Credentials::SshKey.new(username:   git_user,
                                     publickey:  File.expand_path(pubkey),
                                     privatekey: File.expand_path(privkey),

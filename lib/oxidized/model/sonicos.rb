@@ -4,7 +4,7 @@ class SonicOS < Oxidized::Model
   # Applies to Sonicwall NSA series firewalls
 
   prompt /^\w+@\w+[>]\(?.+\)?\s?/
-  comment  '! '
+  comment '! '
 
   cmd :all do |cfg|
     cfg.each_line.to_a[1..-2].join

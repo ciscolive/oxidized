@@ -3,7 +3,7 @@ class DNOS < Oxidized::Model
 
   # Force10 DNOS model #
 
-  comment  '! '
+  comment '! '
 
   cmd :all do |cfg|
     cfg.gsub! /^% Invalid input detected at '\^' marker\.$|^\s+\^$/, ''

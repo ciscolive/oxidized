@@ -1,6 +1,7 @@
 module Oxidized
   require 'net/telnet'
   require 'oxidized/input/cli'
+
   class Telnet < Input
     RescueFail = {}.freeze
     include Input::CLI
@@ -12,7 +13,7 @@ module Oxidized
       @timeout = Oxidized.config.timeout
       # telnet 相关回调函数
       @node.model.cfg['telnet'].each { |cb| instance_exec(&cb) }
-      @log = File.open(Oxidized::Config::Log + "/#{@node.ip}_telnet.log", 'w') if Oxidized.config.input.debug?
+      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_telnet.log", 'w') if Oxidized.config.input.debug?
       port = vars(:telnet_port) || 23
 
       # 相关参数
@@ -87,9 +88,9 @@ module Net
     ## FIXME: we also need output (not sure I'm going to support this)
     attr_reader :output
 
-    def oxidized_expect(options) ## rubocop:disable Metrics/PerceivedComplexity
-      model    = @options["Model"]
-      @log     = @options["Log"]
+    def oxidized_expect(options)
+      model = @options["Model"]
+      @log  = @options["Log"]
 
       expects  = [options[:expect]].flatten
       time_out = options[:timeout] || @options["Timeout"] || Oxidized.config.timeout?
@@ -99,20 +100,20 @@ module Net
         rest = ""
         buf  = ""
         loop do
-          c = @sock.readpartial(1024 * 1024)
+          c       = @sock.readpartial(1024 * 1024)
           @output = c
-          c = rest + c
+          c       = rest + c
 
           if Integer(c.rindex(/#{IAC}#{SE}/no) || 0) <
              Integer(c.rindex(/#{IAC}#{SB}/no) || 0)
-            buf = preprocess(c[0...c.rindex(/#{IAC}#{SB}/no)])
+            buf  = preprocess(c[0...c.rindex(/#{IAC}#{SB}/no)])
             rest = c[c.rindex(/#{IAC}#{SB}/no)..-1]
           elsif (pt = c.rindex(/#{IAC}[^#{IAC}#{AO}#{AYT}#{DM}#{IP}#{NOP}]?\z/no) ||
-                     c.rindex(/\r\z/no))
-            buf = preprocess(c[0...pt])
+            c.rindex(/\r\z/no))
+            buf  = preprocess(c[0...pt])
             rest = c[pt..-1]
           else
-            buf = preprocess(c)
+            buf  = preprocess(c)
             rest = ''
           end
           if Oxidized.config.input.debug?

@@ -8,7 +8,9 @@ module Oxidized
       def initialize
         @post_login = []
         @pre_logout = []
-        @username, @password, @exec = nil
+        @username   = nil
+        @password   = nil
+        @exec       = nil
       end
 
       # 获取运行配置
@@ -58,12 +60,12 @@ module Oxidized
       end
 
       # 设置用户提示符
-      def username(regex = /^(Username|login)/)
+      def username(regex = /^(Username|login)/i)
         @username || (@username = regex)
       end
 
       # 设置密码提示符
-      def password(regex = /^Password/)
+      def password(regex = /^Password/i)
         @password || (@password = regex)
       end
 
@@ -77,7 +79,7 @@ module Oxidized
         # 直到正常捕捉到设备登录成功提示符
         # expect(match_re) 子模块具体实现
         until (match = expect(match_re)) == @node.prompt
-          # 自动交互输入账户和密码
+          # 自动交互输入账户和密码 -- 不需要捕捉回显也就不会等待回显超时
           cmd(@node.auth[:username], nil) if match == @username
           cmd(@node.auth[:password], nil) if match == @password
           match_re.delete match

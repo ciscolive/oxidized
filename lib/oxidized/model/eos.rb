@@ -5,7 +5,7 @@ class EOS < Oxidized::Model
 
   prompt /^.+[#>]$/
 
-  comment  '! '
+  comment '! '
 
   cmd :all do |cfg|
     cfg.cut_both

@@ -5,13 +5,14 @@ module Oxidized
       @cfg = Oxidized.config.source.http
     end
 
+    # 自动装配
     def setup
       return unless @cfg.url.empty?
 
-      Oxidized.asetus.user.source.http.url = 'http://www.example.com/devices'
-      Oxidized.asetus.user.source.http.user = 'username'
-      Oxidized.asetus.user.source.http.pass = 'password'
-      Oxidized.asetus.user.source.http.map.name = 0
+      Oxidized.asetus.user.source.http.url       = 'http://www.example.com/devices'
+      Oxidized.asetus.user.source.http.user      = 'username'
+      Oxidized.asetus.user.source.http.pass      = 'password'
+      Oxidized.asetus.user.source.http.map.name  = 0
       Oxidized.asetus.user.source.http.map.model = 1
       Oxidized.asetus.save :user
       raise NoConfig, 'no source http url config, edit ~/.config/oxidized/config'
@@ -23,9 +24,12 @@ module Oxidized
     require "uri"
     require "json"
 
+    # 自动加载数据
     def load(node_want = nil)
       nodes = []
+      # 发起请求并解析响应
       data = JSON.parse(read_http(node_want))
+      # FIXME: 作用不明确
       data = string_navigate(data, @cfg.hosts_location) if @cfg.hosts_location?
       data.each do |node|
         next if node.empty?
@@ -66,11 +70,12 @@ module Oxidized
       object
     end
 
+    # 发起 http 请求并读取 body
     def read_http(node_want)
-      uri = URI.parse(@cfg.url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true if uri.scheme == 'https'
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE unless @cfg.secure
+      uri               = URI.parse(@cfg.url)
+      http              = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl      = true if uri.scheme == 'https'
+      http.verify_mode  = OpenSSL::SSL::VERIFY_NONE unless @cfg.secure
 
       # Add read_timeout to handle case of big list of nodes (default value is 60 seconds)
       http.read_timeout = Integer(@cfg.read_timeout) if @cfg.has_key? "read_timeout"
@@ -82,8 +87,12 @@ module Oxidized
       end
 
       req_uri = uri.request_uri
+      # 查询特定节点配置清单
       req_uri = "#{req_uri}/#{node_want}" if node_want
+
+      # 实例化 http 对象 -- get 请求
       request = Net::HTTP::Get.new(req_uri, headers)
+      # 设置 http 头部认证
       request.basic_auth(@cfg.user, @cfg.pass) if @cfg.user? && @cfg.pass?
       http.request(request).body
     end

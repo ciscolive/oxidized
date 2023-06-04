@@ -58,3 +58,8 @@ source:
 model_map:
   juniper: junos
   cisco: ios
+  PANOS: panos
+  Comware: h3c
+  Hillstone: stoneos
+  Radware: alteonos
+  ros: ios

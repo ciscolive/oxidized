@@ -4,7 +4,7 @@ class AOS < Oxidized::Model
   # Alcatel-Lucent Operating System
   # used in OmniSwitch
 
-  comment  '! '
+  comment '! '
 
   cmd :all do |cfg|
     cfg.cut_both

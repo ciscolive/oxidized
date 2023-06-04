@@ -4,7 +4,7 @@ class Exec < Oxidized::Hook
   def initialize
     super
     @timeout = 60
-    @async = false
+    @async   = false
   end
 
   def validate_cfg!
@@ -40,7 +40,7 @@ class Exec < Oxidized::Hook
   def run_cmd!(env)
     pid, status = nil, nil
     Timeout.timeout(@timeout) do
-      pid = spawn env, @cmd, unsetenv_others: true
+      pid         = spawn env, @cmd, unsetenv_others: true
       pid, status = wait2 pid
       unless status.exitstatus.zero?
         msg = "#{@cmd.inspect} failed with exit value #{status.exitstatus}"
@@ -75,7 +75,7 @@ class Exec < Oxidized::Hook
     end
     if ctx.job
       env["OX_JOB_STATUS"] = ctx.job.status.to_s
-      env["OX_JOB_TIME"] = ctx.job.time.to_s
+      env["OX_JOB_TIME"]   = ctx.job.time.to_s
     end
     env
   end

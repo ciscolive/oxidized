@@ -1,6 +1,7 @@
 module Oxidized
   class GitCrypt < Output
     class GitCryptError < OxidizedError; end
+
     begin
       require 'git'
     rescue LoadError
@@ -11,11 +12,11 @@ module Oxidized
 
     def initialize
       super
-      @cfg = Oxidized.config.output.gitcrypt
-      @gitcrypt_cmd = "/usr/bin/git-crypt"
-      @gitcrypt_init = @gitcrypt_cmd + " init"
-      @gitcrypt_unlock = @gitcrypt_cmd + " unlock"
-      @gitcrypt_lock = @gitcrypt_cmd + " lock"
+      @cfg              = Oxidized.config.output.gitcrypt
+      @gitcrypt_cmd     = "/usr/bin/git-crypt"
+      @gitcrypt_init    = @gitcrypt_cmd + " init"
+      @gitcrypt_unlock  = @gitcrypt_cmd + " unlock"
+      @gitcrypt_lock    = @gitcrypt_cmd + " lock"
       @gitcrypt_adduser = @gitcrypt_cmd + " add-gpg-user --trusted "
     end
 
@@ -23,7 +24,7 @@ module Oxidized
       if @cfg.empty?
         Oxidized.asetus.user.output.gitcrypt.user  = 'Oxidized'
         Oxidized.asetus.user.output.gitcrypt.email = 'o@example.com'
-        Oxidized.asetus.user.output.gitcrypt.repo = File.join(Config::Root, 'oxidized.git')
+        Oxidized.asetus.user.output.gitcrypt.repo  = File.join(Config::ROOT_DIR, 'oxidized.git')
         Oxidized.asetus.save :user
         raise NoConfig, 'no output git config, edit ~/.config/oxidized/config'
       end
@@ -62,15 +63,15 @@ module Oxidized
     end
 
     def store(file, outputs, opt = {})
-      @msg   = opt[:msg]
-      @user  = (opt[:user]  || @cfg.user)
-      @email = (opt[:email] || @cfg.email)
-      @opt   = opt
+      @msg       = opt[:msg]
+      @user      = (opt[:user] || @cfg.user)
+      @email     = (opt[:email] || @cfg.email)
+      @opt       = opt
       @commitref = nil
-      repo = @cfg.repo
+      repo       = @cfg.repo
 
       outputs.types.each do |type|
-        type_cfg = ''
+        type_cfg  = ''
         type_repo = File.join(File.dirname(repo), type + '.git')
         outputs.type(type).each do |output|
           (type_cfg << output; next) unless output.name # rubocop:disable Style/Semicolon
@@ -89,7 +90,7 @@ module Oxidized
 
     def fetch(node, group)
       repo, path = yield_repo_and_path(node, group)
-      repo = Git.open repo
+      repo       = Git.open repo
       unlock repo
       index = repo.index
       # Empty repo ?
@@ -108,15 +109,15 @@ module Oxidized
       repo = Git.open repo
       unlock repo
       walker = repo.log.path(path)
-      i = -1
-      tab = []
+      i      = -1
+      tab    = []
       walker.each do |commit|
-        hash = {}
-        hash[:date] = commit.date.to_s
-        hash[:oid] = commit.objectish
-        hash[:author] = commit.author
+        hash           = {}
+        hash[:date]    = commit.date.to_s
+        hash[:oid]     = commit.objectish
+        hash[:author]  = commit.author
         hash[:message] = commit.message
-        tab[i += 1] = hash
+        tab[i += 1]    = hash
       end
       walker.reset
       tab
@@ -127,7 +128,7 @@ module Oxidized
     # give the blob of a specific revision
     def get_version(node, group, oid)
       repo, path = yield_repo_and_path(node, group)
-      repo = Git.open repo
+      repo       = Git.open repo
       unlock repo
       repo.gtree(oid).files[path].contents
     rescue StandardError
@@ -139,15 +140,15 @@ module Oxidized
     # give a hash with the patch of a diff between 2 revision and the stats (added and deleted lines)
     def get_diff(node, group, oid1, oid2)
       diff_commits = nil
-      repo, _path = yield_repo_and_path(node, group)
-      repo = Git.open repo
+      repo, _path  = yield_repo_and_path(node, group)
+      repo         = Git.open repo
       unlock repo
       commit = repo.gcommit(oid1)
 
       if oid2
         commit_old = repo.gcommit(oid2)
-        diff = repo.diff(commit_old, commit)
-        stats = [diff.stats[:files][node.name][:insertions], diff.stats[:files][node.name][:deletions]]
+        diff       = repo.diff(commit_old, commit)
+        stats      = [diff.stats[:files][node.name][:insertions], diff.stats[:files][node.name][:deletions]]
         diff.each do |patch|
           if /#{node.name}\s+/ =~ patch.patch.to_s.lines.first
             diff_commits = { patch: patch.patch.to_s, stat: stats }
@@ -155,9 +156,9 @@ module Oxidized
           end
         end
       else
-        stat = commit.parents[0].diff(commit).stats
-        stat = [stat[:files][node.name][:insertions], stat[:files][node.name][:deletions]]
-        patch = commit.parents[0].diff(commit).patch
+        stat         = commit.parents[0].diff(commit).stats
+        stat         = [stat[:files][node.name][:insertions], stat[:files][node.name][:deletions]]
+        patch        = commit.parents[0].diff(commit).patch
         diff_commits = { patch: patch, stat: stat }
       end
       lock repo
@@ -173,7 +174,7 @@ module Oxidized
     def yield_repo_and_path(node, group)
       repo, path = node.repo, node.name
 
-      path = "#{group}/#{node.name}" if group && @cfg.single_repo?
+      path       = "#{group}/#{node.name}" if group && @cfg.single_repo?
 
       [repo, path]
     end

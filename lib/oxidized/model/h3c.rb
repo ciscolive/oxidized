@@ -9,6 +9,7 @@ class H3C < Oxidized::Model
   comment '# '
 
   # 设置脚本脱敏信息
+  # 执行完脚本的回显作为输入传递给到代码块进一步处理
   cmd :secret do |cfg|
     cfg.gsub! /(pin verify (?:auto|)).*/, '\\1 <PIN hidden>'
     cfg.gsub! /(%\^%#.*%\^%#)/, '<secret hidden>'

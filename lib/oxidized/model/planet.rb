@@ -2,7 +2,7 @@ class Planet < Oxidized::Model
   using Refinements
 
   prompt /^\r?([\w.@()-]+[#>]\s?)$/
-  comment  '! '
+  comment '! '
 
   # example how to handle pager
   # expect /^\s--More--\s+.*$/ do |data, re|
@@ -35,7 +35,7 @@ class Planet < Oxidized::Model
 
   cmd 'show version' do |cfg|
     cfg.gsub! "\n\r", "\n"
-    @planetgs = true if cfg =~ /^System Name\w*:\w*GS-.*$/
+    @planetgs  = true if cfg =~ /^System Name\w*:\w*GS-.*$/
     @planetsgs = true if cfg =~ /SGS-(.*) Device, Compiled on .*$/
 
     cfg = cfg.each_line.to_a[0...-2]

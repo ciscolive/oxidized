@@ -1,20 +1,20 @@
 module Oxidized
   class Jobs < Array
     # 定义备份常规计时器
-    AVERAGE_DURATION  = 5   # initially presume nodes take 5s to complete
+    AVERAGE_DURATION  = 5 # initially presume nodes take 5s to complete
     MAX_INTER_JOB_GAP = 300 # add job if more than X from last job started
     # 实例对象属性
     attr_accessor :interval, :max, :want
 
     # 初始化函数
     def initialize(max, use_max_threads, interval, nodes)
-      @max = max
+      @max             = max
       @use_max_threads = use_max_threads
       # Set interval to 1 if interval is 0 (=disabled) so we don't break
       # the 'ceil' function
-      @interval = interval.zero? ? 1 : interval
-      @nodes = nodes
-      @last = Time.now.utc
+      @interval  = interval.zero? ? 1 : interval
+      @nodes     = nodes
+      @last      = Time.now.utc + (8 * 60 * 60)
       @durations = Array.new @nodes.size, AVERAGE_DURATION
       duration AVERAGE_DURATION
       super()
@@ -22,7 +22,7 @@ module Oxidized
 
     # 增加时间属性
     def push(arg)
-      @last = Time.now.utc
+      @last = Time.now.utc + (8 * 60 * 60)
       super
     end
 
@@ -59,7 +59,7 @@ module Oxidized
       # then we want one more thread (rationale is to fix hanging thread causing HOLB)
       return unless @want <= size && @want < @nodes.size
 
-      @want += 1 if (Time.now.utc - @last) > MAX_INTER_JOB_GAP
+      @want += 1 if (Time.now.utc + (8 * 60 * 60) - @last) > MAX_INTER_JOB_GAP
     end
   end
 end

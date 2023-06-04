@@ -23,7 +23,7 @@ class DellX < Oxidized::Model
 
   cmd 'show version' do |cfg|
     @stackable = true if @stackable.nil? && (cfg =~ /(U|u)nit\s/)
-    cfg = cfg.split("\n").reject { |line| line[/Up\sTime/] }
+    cfg        = cfg.split("\n").reject { |line| line[/Up\sTime/] }
     comment cfg.join("\n") + "\n"
   end
 
@@ -53,7 +53,7 @@ class DellX < Oxidized::Model
   end
 
   def clean(cfg)
-    out = []
+    out         = []
     skip_blocks = 0
     cfg.each_line do |line|
       # If this is a stackable switch we should skip this block of information

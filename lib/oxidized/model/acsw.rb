@@ -2,7 +2,7 @@ class ACSW < Oxidized::Model
   using Refinements
 
   prompt /([\w.@()\/\\-]+[#>]\s?)/
-  comment  '! '
+  comment '! '
 
   cmd :all do |cfg|
     cfg.gsub! /^% Invalid input detected at '\^' marker\.$|^\s+\^$/, ''

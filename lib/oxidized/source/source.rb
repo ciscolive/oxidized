@@ -2,6 +2,7 @@ module Oxidized
   class Source
     class NoConfig < OxidizedError; end
 
+    # 实例化函数
     def initialize
       @model_map = (Oxidized.config.model_map || {})
       @group_map = (Oxidized.config.group_map || {})
@@ -19,9 +20,9 @@ module Oxidized
     # 变量插值
     def node_var_interpolate(var)
       case var
-      when "nil"   then nil
+      when "nil" then nil
       when "false" then false
-      when "true"  then true
+      when "true" then true
       else var
       end
     end

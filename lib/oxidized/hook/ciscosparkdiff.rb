@@ -17,15 +17,15 @@ class CiscoSparkDiff < Oxidized::Hook
     log "Connecting to Cisco Spark"
     CiscoSpark.configure do |config|
       config.api_key = cfg.accesskey
-      config.proxy = cfg.proxy if cfg.has_key?('proxy')
+      config.proxy   = cfg.proxy if cfg.has_key?('proxy')
     end
     room = CiscoSpark::Room.new(id: cfg.space)
     log "Connected"
 
     if cfg.has_key?("diff") ? cfg.diff : true
       gitoutput = ctx.node.output.new
-      diff = gitoutput.get_diff ctx.node, ctx.node.group, ctx.commitref, nil
-      title = ctx.node.name.to_s
+      diff      = gitoutput.get_diff ctx.node, ctx.node.group, ctx.commitref, nil
+      title     = ctx.node.name.to_s
       log "Posting diff as snippet to #{cfg.space}"
       room.send_message CiscoSpark::Message.new(text: 'Device ' + title + ' modified:' + "\n" + diff[:patch].lines.to_a[4..-1].join)
     end

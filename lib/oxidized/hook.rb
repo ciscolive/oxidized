@@ -1,15 +1,16 @@
 module Oxidized
   class HookManager
+    # 类方法
     class << self
       def from_config(cfg)
         # 实例化 HookManager
-        mgr = new
+        hook_mgr = new
         cfg.hooks.each do |name, hook_cfg|
           hook_cfg.events.each do |event|
-            mgr.register event.to_sym, name, hook_cfg.type, hook_cfg
+            hook_mgr.register event.to_sym, name, hook_cfg.type, hook_cfg
           end
         end
-        mgr
+        hook_mgr
       end
     end
 
@@ -57,7 +58,7 @@ module Oxidized
     end
 
     def handle(event, ctx_params = {})
-      ctx = HookContext.new ctx_params
+      ctx       = HookContext.new ctx_params
       ctx.event = event
 
       @registered_hooks[event].each do |r_hook|
@@ -75,6 +76,7 @@ module Oxidized
 
     def cfg=(cfg)
       @cfg = cfg
+      # 懒加载配置校验函数
       validate_cfg! if respond_to? :validate_cfg!
     end
 

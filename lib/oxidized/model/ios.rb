@@ -1,26 +1,30 @@
 class IOS < Oxidized::Model
   using Refinements
 
+  # 设备登录成功提示符
   prompt /^([\w.@()-]+[#>]\s?)$/
+
+  # 配置注释
   comment '! '
 
+  # 交互式执行 more
   # example how to handle pager
-  expect /^\s--More--\s+.*$/ do |data, re|
-    send ' '
-    data.sub re, ''
-  end
+  # expect /^\s--More--\s+.*$/ do |data, re|
+  #   send ' '
+  #   data.sub re, ''
+  # end
 
   # non-preferred way to handle additional PW prompt
-  expect /^[\w.]+>$/ do |data|
-    send "enable\n"
-    send vars(:enable) + "\n"
-    data
-  end
+  # expect /^[\w.]+>$/ do |data|
+  #   send "enable\n"
+  #   send vars(:enable) + "\n"
+  #   data
+  # end
 
   # 所有脚本输出必须处理的逻辑 -- 字串裁剪
   cmd :all do |cfg|
-    # cfg.gsub! /\cH+\s{8}/, ''         # example how to handle pager
-    # cfg.gsub! /\cH+/, ''              # example how to handle pager
+    cfg.gsub! /\cH+\s{8}/, '' # example how to handle pager
+    cfg.gsub! /\cH+/, '' # example how to handle pager
     # get rid of errors for commands that don't work on some devices
     cfg.gsub! /^% Invalid input detected at '\^' marker\.$|^\s+\^$/, ''
     cfg.cut_both
@@ -55,12 +59,12 @@ class IOS < Oxidized::Model
     comments << cfg.lines.first
     lines = cfg.lines
     lines.each_with_index do |line, i|
-      slave = ''
-      slaveslot = ''
+      slave      = ''
+      slave_slot = ''
 
       if line =~ /^Slave in slot (\d+) is running/
-        slave = " Slave:"
-        slaveslot = ", slot #{Regexp.last_match(1)}"
+        slave      = " Slave:"
+        slave_slot = ", slot #{Regexp.last_match(1)}"
       end
 
       comments << "Image:#{slave} Compiled: #{Regexp.last_match(1)}" if line =~ /^Compiled (.*)$/
@@ -78,19 +82,19 @@ class IOS < Oxidized::Model
       comments << "Memory: pcmcia #{Regexp.last_match(2)} #{Regexp.last_match(3)}#{Regexp.last_match(4)} #{Regexp.last_match(1)}" if line =~ /^(\d+[kK]) bytes of (Flash|ATA)?.*PCMCIA .*(slot|disk) ?(\d)/i
 
       if line =~ /(\S+(?:\sseries)?)\s+(?:\((\S+)\)\s+processor|\(revision[^)]+\)).*\s+with (\S+k) bytes/i
-        sproc = Regexp.last_match(1)
-        cpu = Regexp.last_match(2)
-        mem = Regexp.last_match(3)
-        cpuxtra = ''
+        sproc    = Regexp.last_match(1)
+        cpu      = Regexp.last_match(2)
+        mem      = Regexp.last_match(3)
+        cpu_xtra = ''
         comments << "Chassis type:#{slave} #{sproc}"
         comments << "Memory:#{slave} main #{mem}"
         # check the next two lines for more CPU info
         comments << "Processor ID: #{Regexp.last_match(1)}" if cfg.lines[i + 1] =~ /processor board id (\S+)/i
         if cfg.lines[i + 2] =~ /(cpu at |processor: |#{cpu} processor,)/i
           # change implementation to impl and prepend comma
-          cpuxtra = cfg.lines[i + 2].gsub(/implementation/, 'impl').gsub(/^/, ', ').chomp
+          cpu_xtra = cfg.lines[i + 2].gsub(/implementation/, 'impl').gsub(/^/, ', ').chomp
         end
-        comments << "CPU:#{slave} #{cpu}#{cpuxtra}#{slaveslot}"
+        comments << "CPU:#{slave} #{cpu}#{cpu_xtra}#{slave_slot}"
       end
 
       comments << "Image: #{Regexp.last_match(1)}" if line =~ /^System image file is "([^"]*)"$/
@@ -145,7 +149,7 @@ class IOS < Oxidized::Model
       if vars(:enable) == true
         cmd "enable"
       elsif vars(:enable)
-        cmd "enable", /^[pP]assword:/
+        cmd "enable", /password/i
         cmd vars(:enable)
       end
     end

@@ -2,9 +2,12 @@ module Oxidized
   require 'resolv'
   require 'ostruct'
   require_relative 'node/stats'
-  class MethodNotFound < OxidizedError; end
-  class ModelNotFound  < OxidizedError; end
 
+  class MethodNotFound < OxidizedError; end
+
+  class ModelNotFound < OxidizedError; end
+
+  # 备份节点相关属性
   class Node
     # 实例对象 -- 只读属性
     attr_reader :name, :ip, :model, :input, :output, :group, :auth, :prompt, :vars, :last, :repo
@@ -19,29 +22,30 @@ module Oxidized
       # remove the prefix if an IP Address is provided with one as IPAddr converts it to a network address.
       ip_addr, = opt[:ip].to_s.split("/")
       Oxidized.logger.debug 'IPADDR %s' % ip_addr.to_s
+      # 设定节点名称和IP地址
       @name = opt[:name]
       @ip = IPAddr.new(ip_addr).to_s rescue nil
-      @ip ||= Resolv.new.getaddress(@name) if Oxidized.config.resolve_dns?
-      @ip ||= @name
+      @ip    ||= Resolv.new.getaddress(@name) if Oxidized.config.resolve_dns?
+      @ip    ||= @name
       @group = opt[:group]
       # 动态解析节点相关的模型、输入、输出和认证等信息
-      @model = resolve_model opt
-      @input = resolve_input opt
+      @model  = resolve_model opt
+      @input  = resolve_input opt
       @output = resolve_output opt
-      @auth = resolve_auth opt
+      @auth   = resolve_auth opt
       @prompt = resolve_prompt opt
       # 节点本身相关变量
-      @vars = opt[:vars]
-      @stats = Stats.new
-      @retry = 0
-      @repo = resolve_repo opt
-      @err_type = nil
+      @vars       = opt[:vars]
+      @stats      = Stats.new
+      @retry      = 0
+      @repo       = resolve_repo opt
+      @err_type   = nil
       @err_reason = nil
-
       # model instance needs to access node instance
       @model.node = self
     end
 
+    # 执行节点配置备份任务 -- 返回状态和配置信息
     def run
       status, config = :fail, nil
       # 支持多种方式去登录设备
@@ -78,17 +82,18 @@ module Oxidized
       end
 
       # 尝试登录设备并抓取运行配置
+      # *rescue_fail.keys => err -- 设定为数组参数
       begin
         input.connect(self) && input.get
       rescue *rescue_fail.keys => err
-        resc = ''
+        ctx = ''
         unless (level = rescue_fail[err.class])
-          resc  = err.class.ancestors.find { |e| rescue_fail.has_key?(e) }
-          level = rescue_fail[resc]
-          resc  = " (rescued #{resc})"
+          ctx   = err.class.ancestors.find { |e| rescue_fail.has_key?(e) }
+          level = rescue_fail[ctx]
+          ctx   = " (rescued #{ctx})"
         end
-        Oxidized.logger.send(level, '%s raised %s%s with msg "%s"' % [ip, err.class, resc, err.message])
-        @err_type = err.class.to_s
+        Oxidized.logger.send(level, '%s raised %s%s with msg "%s"' % [ip, err.class, ctx, err.message])
+        @err_type   = err.class.to_s
         @err_reason = err.message.to_s
         false
       rescue StandardError => err
@@ -96,19 +101,21 @@ module Oxidized
         crash_file = Oxidized.config.crash.hostnames? ? name : ip.to_s
         FileUtils.mkdir_p(crash_dir) unless File.directory?(crash_dir)
 
+        # 写入异常日志文件
         File.open File.join(crash_dir, crash_file), 'w' do |fh|
-          fh.puts Time.now.utc
+          fh.puts Time.now.utc + (8 * 60 * 60)
           fh.puts err.message + ' [' + err.class.to_s + ']'
           fh.puts '-' * 50
           fh.puts err.backtrace
         end
         Oxidized.logger.error '%s raised %s with msg "%s", %s saved' % [ip, err.class, err.message, crash_file]
-        @err_type = err.class.to_s
+        @err_type   = err.class.to_s
         @err_reason = err.message.to_s
         false
       end
     end
 
+    # 节点序列化函数
     def serialize
       h = {
         name:      @name,
@@ -136,12 +143,12 @@ module Oxidized
     # 节点运行快照
     def last=(job)
       if job
-        ostruct = OpenStruct.new
+        ostruct        = OpenStruct.new
         ostruct.start  = job.start
         ostruct.end    = job.end
         ostruct.status = job.status
         ostruct.time   = job.time
-        @last = ostruct
+        @last          = ostruct
       else
         @last = nil
       end
@@ -149,7 +156,7 @@ module Oxidized
 
     # 重置节点状态
     def reset
-      @user = @email = @msg = @from = nil
+      @user  = @email = @msg = @from = nil
       @retry = 0
     end
 
@@ -198,6 +205,7 @@ module Oxidized
     # 设备登录驱动 -- 模型
     def resolve_model(opt)
       model = resolve_key :model, opt
+      # 懒加载模板
       unless Oxidized.mgr.model[model]
         Oxidized.logger.debug "lib/oxidized/node.rb: Loading model #{model.inspect}"
         Oxidized.mgr.add_model(model) || raise(ModelNotFound, "#{model} not found for node #{ip}")
@@ -230,25 +238,25 @@ module Oxidized
       value   = global
       Oxidized.logger.debug "node.rb: resolving node key '#{key}', with passed global value of '#{value}' and node value '#{opt[key_sym]}'"
 
-      # global
+      # global -- 全局配置
       if (not value) && Oxidized.config.has_key?(key_str)
         value = Oxidized.config[key_str]
         Oxidized.logger.debug "node.rb: setting node key '#{key}' to value '#{value}' from global"
       end
 
-      # group
+      # group -- 组配置
       if Oxidized.config.groups.has_key?(@group) && Oxidized.config.groups[@group].has_key?(key_str)
         value = Oxidized.config.groups[@group][key_str]
         Oxidized.logger.debug "node.rb: setting node key '#{key}' to value '#{value}' from group"
       end
 
-      # model
+      # model -- 模块配置
       if Oxidized.config.models.has_key?(@model.class.name.to_s.downcase) && Oxidized.config.models[@model.class.name.to_s.downcase].has_key?(key_str)
         value = Oxidized.config.models[@model.class.name.to_s.downcase][key_str]
         Oxidized.logger.debug "node.rb: setting node key '#{key}' to value '#{value}' from model"
       end
 
-      # node
+      # node -- 节点配置
       value = opt[key_sym] || value
       Oxidized.logger.debug "node.rb: returning node key '#{key}' with value '#{value}'"
       value

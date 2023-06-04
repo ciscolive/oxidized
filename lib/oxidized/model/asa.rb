@@ -5,7 +5,7 @@ class ASA < Oxidized::Model
   # Only SSH supported for the sake of security
 
   prompt /^\r*([\w.@()-\/]+[#>]\s?)$/
-  comment  '! '
+  comment '! '
 
   cmd :all do |cfg|
     cfg.cut_both
@@ -91,17 +91,17 @@ class ASA < Oxidized::Model
   def multiple_context
     # Multiple context mode
     cmd 'changeto system' do |cfg|
-      cmd 'show running-config' do |systemcfg|
-        allcfg = "\n\n" + systemcfg + "\n\n"
-        contexts = systemcfg.scan(/^context (\S+)$/)
-        files = systemcfg.scan(/config-url (\S+)$/)
+      cmd 'show running-config' do |system_cfg|
+        all_cfg  = "\n\n" + system_cfg + "\n\n"
+        contexts = system_cfg.scan(/^context (\S+)$/)
+        files    = system_cfg.scan(/config-url (\S+)$/)
         contexts.each_with_index do |cont, i|
-          allcfg = allcfg + "\n\n----------========== [ CONTEXT " + cont.join(" ") + " FILE " + files[i].join(" ") + " ] ==========----------\n\n"
-          cmd "more " + files[i].join(" ") do |cfgcontext|
-            allcfg = allcfg + "\n\n" + cfgcontext
+          all_cfg = all_cfg + "\n\n----------========== [ CONTEXT " + cont.join(" ") + " FILE " + files[i].join(" ") + " ] ==========----------\n\n"
+          cmd "more " + files[i].join(" ") do |cfg_context|
+            all_cfg = all_cfg + "\n\n" + cfg_context
           end
         end
-        cfg = allcfg
+        cfg = all_cfg
       end
       cfg
     end

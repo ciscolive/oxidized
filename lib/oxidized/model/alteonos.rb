@@ -6,7 +6,7 @@ class ALTEONOS < Oxidized::Model
   # (user@host) $
   # root#
   # user>
-  prompt  /^\(?.+\)?\s?[#>]/
+  prompt /^\(?.+\)?\s?[#>]/
 
   # 设置注解
   comment '! '
@@ -46,21 +46,21 @@ class ALTEONOS < Oxidized::Model
 
   # SSH 执行脚本期间自动交互式响应 -> Oxidized::Model#expects
   # Answer for Dispay private keys
-  expect /^Display private keys\?\s?\[y\/n\]: $/ do |data, re|
+  expect /^Display private keys\?\s?\[y\/n\]: $/ do |_data, _re|
     send "n\r"
-    data.sub re, ''
+    # data.sub re, ''
   end
 
   # Answer for sync to peer on exit
-  expect /^Confirm Sync to Peer\s?\[y\/n\]: $/ do |data, re|
+  expect /^Confirm Sync to Peer\s?\[y\/n\]: $/ do |_data, _re|
     send "n\r"
-    data.sub re, ''
+    # data.sub re, ''
   end
 
   # Answer for  Unsaved configuration
-  expect /^(WARNING: There are unsaved configuration changes).*/ do |data, re|
+  expect /^(WARNING: There are unsaved configuration changes).*/ do |_data, _re|
     send "n\r"
-    data.sub re, ''
+    # data.sub re, ''
   end
 
   # 登出前执行 exit

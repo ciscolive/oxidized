@@ -4,6 +4,7 @@ module Oxidized
   class Input
     include Oxidized::Config::Vars
 
+    # 通用的异常模型
     RescueFail = {
       debug: [
         Errno::ECONNREFUSED

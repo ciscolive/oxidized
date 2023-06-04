@@ -28,9 +28,9 @@ class ECIapollo < Oxidized::Model
     pre_logout 'exit'
   end
 
-  cmd('show version')           { |cfg| comment cfg }
-  cmd('show system licenses')   { |cfg| comment cfg }
-  cmd('show configuration')     { |cfg| comment cfg }
+  cmd('show version') { |cfg| comment cfg }
+  cmd('show system licenses') { |cfg| comment cfg }
+  cmd('show configuration') { |cfg| comment cfg }
   cmd('show configuration | display-set') { |cfg| cfg }
   cmd('show chassis inventory') { |cfg| comment cfg }
 end

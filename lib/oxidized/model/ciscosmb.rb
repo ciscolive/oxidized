@@ -8,7 +8,7 @@ class CiscoSMB < Oxidized::Model
   prompt /^\r?([\w.@()-]+[#>]\s?)$/
 
   # 配置注释符号
-  comment  '! '
+  comment '! '
 
   # 每个脚本输出执行字符串处理规则
   # 去除脚本输出首尾字符串

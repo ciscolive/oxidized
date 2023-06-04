@@ -5,13 +5,14 @@ module Oxidized
 
     # 节点启用配置备份任务
     def initialize(node)
-      @node         = node
-      @start        = Time.now.utc
+      @node  = node
+      @start = Time.now.utc + (8 * 60 * 60)
       super do
-        Oxidized.logger.debug "lib/oxidized/job.rb: Starting fetching process for #{@node.name} at #{Time.now.utc}"
+        Oxidized.logger.debug "lib/oxidized/job.rb: Starting fetching process for #{@node.name} at #{@start}"
         @status, @config = @node.run
-        @end             = Time.now.utc
-        @time            = @end - @start
+        # 设定起止时间
+        @end  = Time.now.utc + (8 * 60 * 60)
+        @time = @end - @start
         Oxidized.logger.debug "lib/oxidized/job.rb: Config fetched for #{@node.name} at #{@end}"
       end
     end

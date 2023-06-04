@@ -1,4 +1,6 @@
 module Oxidized
+  # 模块的单类实例 -- self 指定为模块本身
+  # new 是类方法，initialize 实例方法
   class << self
     def new(*args)
       Core.new args
@@ -8,9 +10,12 @@ module Oxidized
   class Core
     class NoNodesFound < OxidizedError; end
 
+    # 实例化函数
     def initialize(_args)
-      Oxidized.mgr = Manager.new
+      # 实例化 mgr hooks
+      Oxidized.mgr   = Manager.new
       Oxidized.hooks = HookManager.from_config(Oxidized.config)
+      # 实例化并加载节点清单
       nodes = Nodes.new
       raise NoNodesFound, 'source returns no usable nodes' if nodes.size.zero?
 
@@ -20,7 +25,7 @@ module Oxidized
 
       if Oxidized.config.rest?
         begin
-          require 'oxidized/web'
+          require "oxidized/web"
         rescue LoadError
           raise OxidizedError, 'oxidized-web not found: sudo gem install oxidized-web - \
           or disable web support by setting "rest: false" in your configuration'
@@ -36,7 +41,7 @@ module Oxidized
 
     def run
       Oxidized.logger.debug "lib/oxidized/core.rb: Starting the worker..."
-      @worker.work while sleep Config::Sleep
+      @worker.work while sleep Config::SLEEP_TIME
     end
   end
 end

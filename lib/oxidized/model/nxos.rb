@@ -14,7 +14,7 @@ class NXOS < Oxidized::Model
   # 脚本显示修正
   def filter(cfg)
     cfg.gsub! /\r\n?/, "\n"
-    cfg.gsub! prompt, ''
+    # cfg.gsub! prompt, ''
   end
 
   # 配置脱敏规则

@@ -5,7 +5,7 @@ class ACMEPACKET < Oxidized::Model
 
   prompt /^\r*([\w.@()-\/]+[#>]\s?)$/
 
-  comment  '! '
+  comment '! '
 
   cmd :all do |cfg, cmdstring|
     new_cfg = comment "COMMAND: #{cmdstring}\n"

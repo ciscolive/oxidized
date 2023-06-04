@@ -7,8 +7,8 @@ class AwsSns < Oxidized::Hook
   end
 
   def run_hook(ctx)
-    sns = Aws::SNS::Resource.new(region: cfg.region)
-    topic = sns.topic(cfg.topic_arn)
+    sns     = Aws::SNS::Resource.new(region: cfg.region)
+    topic   = sns.topic(cfg.topic_arn)
     message = {
       event: ctx.event.to_s
     }

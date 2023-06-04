@@ -5,7 +5,7 @@ class OS10 < Oxidized::Model
   #
   # Tested with : Dell PowerSwitch S4148U-ON
 
-  comment  '! '
+  comment '! '
 
   cmd :all do |cfg|
     cfg.gsub! /^% Invalid input detected at '\^' marker\.$|^\s+\^$/, ''

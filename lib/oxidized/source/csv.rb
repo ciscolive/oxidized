@@ -5,9 +5,10 @@ module Oxidized
       @cfg = Oxidized.config.source.csv
     end
 
+    # 自动装配
     def setup
       if @cfg.empty?
-        Oxidized.asetus.user.source.csv.file      = File.join(Config::Root, 'router.db')
+        Oxidized.asetus.user.source.csv.file      = File.join(Config::ROOT_DIR, 'router.db')
         Oxidized.asetus.user.source.csv.delimiter = /:/
         Oxidized.asetus.user.source.csv.map.name  = 0
         Oxidized.asetus.user.source.csv.map.model = 1
@@ -51,6 +52,7 @@ module Oxidized
 
     private
 
+    # 打开文件
     def open_file
       file = File.expand_path(@cfg.file)
       if @cfg.gpg?

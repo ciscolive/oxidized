@@ -2,7 +2,7 @@ class OneOS < Oxidized::Model
   using Refinements
 
   prompt /^([\w.@()-]+#\s?)$/
-  comment  '! '
+  comment '! '
 
   # example how to handle pager
   # expect /^\s--More--\s+.*$/ do |data, re|

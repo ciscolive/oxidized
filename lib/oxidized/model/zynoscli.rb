@@ -5,7 +5,7 @@ class ZyNOSCLI < Oxidized::Model
 
   # Typical prompt "XGS4600#"
   prompt /^([\w.@()-]+[#>]\s\e7)$/
-  comment  ';; '
+  comment ';; '
 
   cmd :all do |cfg|
     cfg.gsub! /^.*\e7/, ''

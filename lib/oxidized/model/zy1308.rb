@@ -8,6 +8,6 @@ class Zy1308 < Oxidized::Model
   cfg :http do
     @username = @node.auth[:username]
     @password = @node.auth[:password]
-    @secure = false
+    @secure   = false
   end
 end

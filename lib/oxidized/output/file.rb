@@ -14,34 +14,34 @@ module Oxidized
     def setup
       return unless @cfg.empty?
 
-      Oxidized.asetus.user.output.file.directory = File.join(Config::Root, 'backup_config')
+      Oxidized.asetus.user.output.file.directory = File.join(Config::ROOT_DIR, 'backup_config')
       Oxidized.asetus.save :user
       raise NoConfig, 'no output file config, edit ~/.config/oxidized/config'
     end
 
-    # 将配置转储
+    # 将节点运行配置存储到本地文件夹
     def store(node, outputs, opt = {})
-      file = File.expand_path @cfg.directory
-      file = File.join File.dirname(file), opt[:group] if opt[:group]
-      FileUtils.mkdir_p file
-      file = File.join file, node
+      dir = File.expand_path(@cfg.directory)
+      dir = File.join(File.dirname(dir), opt[:group]) if opt[:group]
+      FileUtils.mkdir_p(dir)
+      file = File.join(dir, node)
       File.write(file, outputs.to_cfg)
       @commitref = file
     end
 
-    # 查询节点配置信息
+    # 本地文件夹读取配置
     def fetch(node, group)
-      cfg_dir = File.expand_path @cfg.directory
+      cfg_dir   = File.expand_path(@cfg.directory)
       node_name = node.name
 
       if group # group is explicitly defined by user
-        cfg_dir = File.join File.dirname(cfg_dir), group
-        File.read File.join(cfg_dir, node_name)
-      elsif File.exist? File.join(cfg_dir, node_name) # node configuration file is stored on base directory
-        File.read File.join(cfg_dir, node_name)
+        cfg_dir = File.join(File.dirname(cfg_dir), group)
+        File.read(File.join(cfg_dir, node_name))
+      elsif File.exist?(File.join(cfg_dir, node_name)) # node configuration file is stored on base directory
+        File.read(File.join(cfg_dir, node_name))
       else
         path = Dir.glob(File.join(File.dirname(cfg_dir), '**', node_name)).first # fetch node in all groups
-        File.read path
+        File.read(path) if path
       end
     rescue Errno::ENOENT
       nil
