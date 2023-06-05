@@ -9,11 +9,11 @@ begin
   # configuration file format uses XML. It is required to parse API
   # responses, as well as to pretty-print the configuration XML file
   # when saving it.
-  require 'nokogiri'
+  require "nokogiri"
 rescue LoadError
   # Oxidized itself depends on mechanize, which in turn depends on
   # nokogiri, so this should never happen.
-  raise Oxidized::OxidizedError, 'nokogiri not found: sudo gem install nokogiri'
+  raise Oxidized::OxidizedError, "nokogiri not found: sudo gem install nokogiri"
 end
 
 class PanOS_API < Oxidized::Model # rubocop:disable Naming/ClassAndModuleCamelCase
@@ -22,9 +22,9 @@ class PanOS_API < Oxidized::Model # rubocop:disable Naming/ClassAndModuleCamelCa
   # Callback function for getting the configuration file.
   cfg_cb = lambda do
     url_param = URI.encode_www_form(
-      user:     @node.auth[:username],
+      user: @node.auth[:username],
       password: @node.auth[:password],
-      type:     'keygen'
+      type: "keygen"
     )
 
     kg_r = get_http "/api?#{url_param}"
@@ -33,22 +33,22 @@ class PanOS_API < Oxidized::Model # rubocop:disable Naming/ClassAndModuleCamelCa
     kg_x = Nokogiri::XML(kg_r)
 
     # Check if keygen was successful. If not we'll throw an error.
-    status = kg_x.xpath('//response/@status').first
-    if status.to_s != 'success'
-      msg = kg_x.xpath('//response/result/msg').text
+    status = kg_x.xpath("//response/@status").first
+    if status.to_s != "success"
+      msg = kg_x.xpath("//response/result/msg").text
       raise Oxidized::OxidizedError, "Could not generate PanOS API key: #{msg}"
     end
 
     # If we reach here, keygen was successful, so get the API key
     # out of the keygen XML response.
-    apikey = kg_x.xpath('//response/result/key').text.to_s
+    apikey = kg_x.xpath("//response/result/key").text.to_s
 
     # Now that we have the API key, we can request a configuration
     # export.
     url_param = URI.encode_www_form(
-      key:      apikey,
-      category: 'configuration',
-      type:     'export'
+      key: apikey,
+      category: "configuration",
+      type: "export"
     )
 
     cfg = get_http "/api?#{url_param}"

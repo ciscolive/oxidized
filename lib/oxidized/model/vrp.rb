@@ -5,15 +5,15 @@ class VRP < Oxidized::Model
   # Huawei VRP
 
   # 设置登录成功正则表达式
-  prompt /^.*(<[\w.-]+>)$/
+  prompt(/^.*(<[\w.-]+>)$/)
 
   # 设置配置注释行标识
-  comment '# '
+  comment "# "
 
   # 数据脱敏
   cmd :secret do |cfg|
-    cfg.gsub! /(pin verify (?:auto|)).*/, '\\1 <PIN hidden>'
-    cfg.gsub! /(%\^%#.*%\^%#)/, '<secret hidden>'
+    cfg.gsub!(/(pin verify (?:auto|)).*/, '\\1 <PIN hidden>')
+    cfg.gsub!(/(%\^%#.*%\^%#)/, "<secret hidden>")
     cfg
   end
 
@@ -23,29 +23,29 @@ class VRP < Oxidized::Model
   end
 
   # 获取版本信息 -- 将回显注释
-  cmd 'display version' do |cfg|
-    cfg = cfg.each_line.reject { |l| l.match /uptime/ }.join
+  cmd "display version" do |cfg|
+    cfg = cfg.each_line.reject { |l| l.match(/uptime/) }.join
     comment cfg
   end
 
   # 获取设备详情 -- 将回显注释
-  cmd 'display device' do |cfg|
+  cmd "display device" do |cfg|
     comment cfg
   end
 
   # 获取运行配置 -- 直接输出无需修饰
-  cmd 'display current-configuration all'
+  cmd "display current-configuration all"
 
   # telnet 登录期间设置交互变量
   cfg :telnet do
-    username /^Username:$/
-    password /^Password:$/
+    username(/^Username:$/)
+    password(/^Password:$/)
   end
 
   # 登录后自动执行的钩子函数
   cfg :telnet, :ssh do
-    post_login 'screen-length 0 temporary'
-    pre_logout 'save force'
-    pre_logout 'quit'
+    post_login "screen-length 0 temporary"
+    pre_logout "save force"
+    pre_logout "quit"
   end
 end

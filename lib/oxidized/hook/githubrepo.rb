@@ -1,12 +1,14 @@
 class GithubRepo < Oxidized::Hook
+  # 校验回调配置
   def validate_cfg!
-    raise KeyError, 'hook.remote_repo is required' unless cfg.has_key?('remote_repo')
+    raise KeyError, "hook.remote_repo is required" unless cfg.has_key?("remote_repo")
   end
 
+  # 执行回调函数
   def run_hook(ctx)
-    repo  = Rugged::Repository.new(ctx.node.repo)
+    repo = Rugged::Repository.new(ctx.node.repo)
     creds = credentials(ctx.node)
-    url   = remote_repo(ctx.node)
+    url = remote_repo(ctx.node)
 
     if url.nil? || url.empty?
       log "No repository defined for #{ctx.node.group}/#{ctx.node.name}", :debug
@@ -16,20 +18,22 @@ class GithubRepo < Oxidized::Hook
     log "Pushing local repository(#{repo.path})..."
     log "to remote: #{url}"
 
-    if repo.remotes['origin'].nil?
-      repo.remotes.create('origin', url)
-    elsif repo.remotes['origin'].url != url
-      repo.remotes.set_url('origin', url)
+    # 设定远程仓库地址
+    if repo.remotes["origin"].nil?
+      repo.remotes.create("origin", url)
+    elsif repo.remotes["origin"].url != url
+      repo.remotes.set_url("origin", url)
     end
-    remote = repo.remotes['origin']
+    remote = repo.remotes["origin"]
 
     fetch_and_merge_remote(repo, creds)
 
     remote.push([repo.head.name], credentials: creds)
   end
 
+  # 拉取并同步差异配置到远程仓库
   def fetch_and_merge_remote(repo, creds)
-    result = repo.fetch('origin', [repo.head.name], credentials: creds)
+    result = repo.fetch("origin", [repo.head.name], credentials: creds)
     log result.inspect, :debug
 
     unless result[:total_deltas].positive?
@@ -49,26 +53,27 @@ class GithubRepo < Oxidized::Hook
     end
 
     Rugged::Commit.create(repo,
-                          parents:    [repo.head.target, their_branch.target],
-                          tree:       merge_index.write_tree(repo),
-                          message:    "Merge remote-tracking branch '#{their_branch.name}'",
-                          update_ref: "HEAD")
+      parents: [repo.head.target, their_branch.target],
+      tree: merge_index.write_tree(repo),
+      message: "Merge remote-tracking branch '#{their_branch.name}'",
+      update_ref: "HEAD")
   end
 
   private
 
+  # 设置 GithubRepo 权限凭证
   def credentials(node)
     Proc.new do |_url, username_from_url, _allowed_types| # rubocop:disable Style/Proc
-      git_user = cfg.has_key?('username') ? cfg.username : (username_from_url || 'git')
-      if cfg.has_key?('password')
+      git_user = cfg.has_key?("username") ? cfg.username : (username_from_url || "git")
+      if cfg.has_key?("password")
         log "Authenticating using username and password as '#{git_user}'", :debug
         Rugged::Credentials::UserPassword.new(username: git_user, password: cfg.password)
-      elsif cfg.has_key?('privatekey')
-        pubkey = cfg.has_key?('publickey') ? cfg.publickey : nil
+      elsif cfg.has_key?("privatekey")
+        pubkey = cfg.has_key?("publickey") ? cfg.publickey : nil
         log "Authenticating using ssh keys as '#{git_user}'", :debug
         rugged_sshkey(git_user: git_user, privkey: cfg.privatekey, pubkey: pubkey)
-      elsif cfg.has_key?('remote_repo') && cfg.remote_repo.has_key?(node.group) && cfg.remote_repo[node.group].has_key?('privatekey')
-        pubkey = cfg.remote_repo[node.group].has_key?('publickey') ? cfg.remote_repo[node.group].publickey : nil
+      elsif cfg.has_key?("remote_repo") && cfg.remote_repo.has_key?(node.group) && cfg.remote_repo[node.group].has_key?("privatekey")
+        pubkey = cfg.remote_repo[node.group].has_key?("publickey") ? cfg.remote_repo[node.group].publickey : nil
         log "Authenticating using ssh keys as '#{git_user}' for '#{node.group}/#{node.name}'", :debug
         rugged_sshkey(git_user: git_user, privkey: cfg.remote_repo[node.group].privatekey, pubkey: pubkey)
       else
@@ -78,16 +83,18 @@ class GithubRepo < Oxidized::Hook
     end
   end
 
+  # 使用 ssh 认证登录 github
   def rugged_sshkey(args = {})
     git_user = args[:git_user]
-    privkey  = args[:privkey]
-    pubkey   = args[:pubkey] || (privkey + '.pub')
+    privkey = args[:privkey]
+    pubkey = args[:pubkey] || (privkey + ".pub")
     Rugged::Credentials::SshKey.new(username:   git_user,
-                                    publickey:  File.expand_path(pubkey),
-                                    privatekey: File.expand_path(privkey),
-                                    passphrase: ENV.fetch("OXIDIZED_SSH_PASSPHRASE", nil))
+      publickey:  File.expand_path(pubkey),
+      privatekey: File.expand_path(privkey),
+      passphrase: ENV.fetch("OXIDIZED_SSH_PASSPHRASE", nil))
   end
 
+  # 定义远程仓库地址
   def remote_repo(node)
     if node.group.nil? || cfg.remote_repo.is_a?(String)
       cfg.remote_repo

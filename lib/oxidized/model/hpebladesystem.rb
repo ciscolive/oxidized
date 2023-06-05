@@ -3,8 +3,8 @@ class HPEBladeSystem < Oxidized::Model
 
   # HPE Onboard Administrator
 
-  prompt /.*> /
-  comment '# '
+  prompt(/.*> /)
+  comment "# "
 
   # expect /^\s*--More--\s+.*$/ do |data, re|
   #   send ' '
@@ -17,67 +17,67 @@ class HPEBladeSystem < Oxidized::Model
   end
 
   cmd :secret do |cfg|
-    cfg.gsub! /^(SET SNMP COMMUNITY (READ|WRITE)).*/, '\\1 <configuration removed>'
+    cfg.gsub!(/^(SET SNMP COMMUNITY (READ|WRITE)).*/, '\\1 <configuration removed>')
     cfg
   end
 
-  cmd 'show oa info' do |cfg|
+  cmd "show oa info" do |cfg|
     comment cfg
   end
 
-  cmd 'show oa network' do |cfg|
+  cmd "show oa network" do |cfg|
     comment cfg
   end
 
-  cmd 'show oa certificate' do |cfg|
+  cmd "show oa certificate" do |cfg|
     comment cfg
   end
 
-  cmd 'show sshfingerprint' do |cfg|
+  cmd "show sshfingerprint" do |cfg|
     comment cfg
   end
 
-  cmd 'show fru' do |cfg|
+  cmd "show fru" do |cfg|
     comment cfg
   end
 
-  cmd 'show network' do |cfg|
-    cfg.gsub! /Last Update:.*$/i, ''
+  cmd "show network" do |cfg|
+    cfg.gsub!(/Last Update:.*$/i, "")
     comment cfg
   end
 
-  cmd 'show vlan' do |cfg|
+  cmd "show vlan" do |cfg|
     comment cfg
   end
 
-  cmd 'show rack name' do |cfg|
+  cmd "show rack name" do |cfg|
     comment cfg
   end
 
-  cmd 'show server list' do |cfg|
+  cmd "show server list" do |cfg|
     comment cfg
   end
 
-  cmd 'show server names' do |cfg|
+  cmd "show server names" do |cfg|
     comment cfg
   end
 
-  cmd 'show server port map all' do |cfg|
+  cmd "show server port map all" do |cfg|
     comment cfg
   end
 
-  cmd 'show server info all' do |cfg|
+  cmd "show server info all" do |cfg|
     comment cfg
   end
 
-  cmd 'show config' do |cfg|
-    cfg.gsub! /^(#Generated on:) .*$/, '\\1 <removed>'
-    cfg.gsub /^\s+/, ''
+  cmd "show config" do |cfg|
+    cfg.gsub!(/^(#Generated on:) .*$/, '\\1 <removed>')
+    cfg.gsub(/^\s+/, "")
   end
 
   cfg :telnet do
-    username /\slogin:/
-    password /^Password: /
+    username(/\slogin:/)
+    password(/^Password: /)
   end
 
   cfg :telnet, :ssh do

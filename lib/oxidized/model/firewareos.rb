@@ -1,29 +1,29 @@
 class FirewareOS < Oxidized::Model
   using Refinements
 
-  prompt /^\[?\w*\]?\w*?(<[\w-]*>)?(#|>)\s*$/
-  comment '-- '
+  prompt(/^\[?\w*\]?\w*?(<[\w-]*>)?(#|>)\s*$/)
+  comment "-- "
 
   cmd :all do |cfg|
     cfg.cut_both
   end
 
   # Handle Logon Disclaimer added in XTM 11.9.3
-  expect /^I have read and accept the Logon Disclaimer message. \(yes or no\)\? $/ do |data, re|
-    send "yes\n"
-    data.sub re, ''
+  expect(/^I have read and accept the Logon Disclaimer message. \(yes or no\)\? $/) do |data, re|
+    send :"yes\n"
+    data.sub re, ""
   end
 
-  cmd 'show sysinfo' do |cfg|
+  cmd "show sysinfo" do |cfg|
     # avoid commits due to uptime
-    cfg = cfg.each_line.reject { |line| line.match /(.*time.*)|(.*memory.*)|(.*cpu.*)/ }
+    cfg = cfg.each_line.reject { |line| line.match(/(.*time.*)|(.*memory.*)|(.*cpu.*)/) }
     cfg = cfg.join
     comment cfg
   end
 
-  cmd 'export config to console'
+  cmd "export config to console"
 
   cfg :ssh do
-    pre_logout 'exit'
+    pre_logout "exit"
   end
 end

@@ -1,16 +1,16 @@
 class TDRE < Oxidized::Model
   using Refinements
 
-  prompt /^>$/
+  prompt(/^>$/)
   cmd "get -f"
 
   def ssh
     @input.class.to_s.match(/SSH/)
   end
 
-  expect /^>.+$/ do |data, re|
-    send "\r" if ssh
-    data.sub re, ''
+  expect(/^>.+$/) do |data, re|
+    send :"\r" if ssh
+    data.sub re, ""
   end
 
   cmd :all do |cfg|
@@ -22,8 +22,8 @@ class TDRE < Oxidized::Model
   end
 
   cfg :telnet do
-    username /^Username:/
-    password /^Password:/
+    username(/^Username:/)
+    password(/^Password:/)
   end
 
   cfg :telnet, :ssh do

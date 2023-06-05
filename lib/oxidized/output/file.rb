@@ -1,6 +1,6 @@
 module Oxidized
   class OxidizedFile < Output
-    require 'fileutils'
+    require "fileutils"
 
     attr_reader :commitref
 
@@ -14,9 +14,9 @@ module Oxidized
     def setup
       return unless @cfg.empty?
 
-      Oxidized.asetus.user.output.file.directory = File.join(Config::ROOT_DIR, 'backup_config')
+      Oxidized.asetus.user.output.file.directory = File.join(Config::ROOT_DIR, "backup_config")
       Oxidized.asetus.save :user
-      raise NoConfig, 'no output file config, edit ~/.config/oxidized/config'
+      raise NoConfig, "no output file config, edit ~/.config/oxidized/config"
     end
 
     # 将节点运行配置存储到本地文件夹
@@ -31,7 +31,7 @@ module Oxidized
 
     # 本地文件夹读取配置
     def fetch(node, group)
-      cfg_dir   = File.expand_path(@cfg.directory)
+      cfg_dir = File.expand_path(@cfg.directory)
       node_name = node.name
 
       if group # group is explicitly defined by user
@@ -40,7 +40,7 @@ module Oxidized
       elsif File.exist?(File.join(cfg_dir, node_name)) # node configuration file is stored on base directory
         File.read(File.join(cfg_dir, node_name))
       else
-        path = Dir.glob(File.join(File.dirname(cfg_dir), '**', node_name)).first # fetch node in all groups
+        path = Dir.glob(File.join(File.dirname(cfg_dir), "**", node_name)).first # fetch node in all groups
         File.read(path) if path
       end
     rescue Errno::ENOENT
@@ -53,7 +53,7 @@ module Oxidized
     end
 
     def get_version(_node, _group, _oid)
-      'not supported'
+      "not supported"
     end
   end
 end

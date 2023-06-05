@@ -11,8 +11,8 @@ module Oxidized
       def add(job)
         stat = {
           start: job.start,
-          end:   job.end,
-          time:  job.time
+          end: job.end,
+          time: job.time
         }
 
         # 先进先出 -- 排队逻辑
@@ -41,7 +41,7 @@ module Oxidized
 
       # 查询备份异常的清单
       def failures
-        @stats[:counter].reduce(0) { |m, h| h[0] == :success ? m : m + h[1] }
+        @stats[:counter].reduce(0) { |m, h| (h[0] == :success) ? m : m + h[1] }
       end
 
       # 节点任务修改时间
@@ -59,9 +59,9 @@ module Oxidized
 
       # 实例化函数
       def initialize
-        @history_size    = Oxidized.config.stats.history_size? || MAX_STAT
-        @mtimes          = Array.new(@history_size, Time.now.utc + (8 * 60 * 60))
-        @stats           = {}
+        @history_size = Oxidized.config.stats.history_size? || MAX_STAT
+        @mtimes = Array.new(@history_size, Time.now.utc + (8 * 60 * 60))
+        @stats = {}
         @stats[:counter] = Hash.new 0
       end
     end

@@ -6,11 +6,11 @@
 class ADVA < Oxidized::Model
   using Refinements
 
-  prompt /\w+\-+[#>]\s?$/
-  comment '# '
+  prompt(/\w+-+[#>]\s?$/)
+  comment "# "
 
   cmd :secret do |cfg|
-    cfg.gsub! /community "[^"]+"/, 'community "<hidden>"'
+    cfg.gsub!(/community "[^"]+"/, 'community "<hidden>"')
     cfg
   end
 
@@ -18,39 +18,39 @@ class ADVA < Oxidized::Model
     cfg.cut_both
   end
 
-  cmd 'show running-config current' do |cfg|
-    cfg.each_line.reject { |line| line.match /^Preparing configuration file.*/ }.join
+  cmd "show running-config current" do |cfg|
+    cfg.each_line.reject { |line| line.match(/^Preparing configuration file.*/) }.join
   end
 
-  cmd 'show system' do |cfg|
-    cfg = cfg.each_line.reject { |line| line.match /(up time|local time)/i }.join
+  cmd "show system" do |cfg|
+    cfg = cfg.each_line.reject { |line| line.match(/(up time|local time)/i) }.join
 
     cfg = "COMMAND: show system\n\n" + cfg
     cfg = comment cfg
     "\n\n" + cfg
   end
 
-  cmd 'network-element ne-1'
+  cmd "network-element ne-1"
 
-  cmd 'show shelf-info' do |cfg|
+  cmd "show shelf-info" do |cfg|
     cfg = "COMMAND: show shelf-info\n\n" + cfg
     cfg = comment cfg
     "\n\n" + cfg
   end
 
   post do
-    ports        = []
-    ports_output = ''
+    ports = []
+    ports_output = ""
 
-    cmd 'show ports' do |cfg|
+    cmd "show ports" do |cfg|
       cfg.each_line do |line|
-        port = line.match(/\|((access|network)[^\|]+)\|/)
+        port = line.match(/\|((access|network)[^|]+)\|/)
         ports << port if port
       end
     end
 
     ports.each do |port|
-      port_command = 'show ' + port[2] + '-port ' + port[1]
+      port_command = "show " + port[2] + "-port " + port[1]
 
       ports_output << cmd(port_command) do |cfg|
         cfg = "COMMAND: " + port_command + "\n\n" + cfg
@@ -63,6 +63,6 @@ class ADVA < Oxidized::Model
   end
 
   cfg :ssh do
-    pre_logout 'logout'
+    pre_logout "logout"
   end
 end

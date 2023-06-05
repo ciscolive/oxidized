@@ -2,10 +2,10 @@ class IOS < Oxidized::Model
   using Refinements
 
   # 设备登录成功提示符
-  prompt /^([\w.@()-]+[#>]\s?)$/
+  prompt(/^([\w.@()-]+[#>]\s?)$/)
 
   # 配置注释
-  comment '! '
+  comment "! "
 
   # 交互式执行 more
   # example how to handle pager
@@ -23,47 +23,47 @@ class IOS < Oxidized::Model
 
   # 所有脚本输出必须处理的逻辑 -- 字串裁剪
   cmd :all do |cfg|
-    cfg.gsub! /\cH+\s{8}/, '' # example how to handle pager
-    cfg.gsub! /\cH+/, '' # example how to handle pager
+    cfg.gsub!(/\cH+\s{8}/, "") # example how to handle pager
+    cfg.gsub!(/\cH+/, "") # example how to handle pager
     # get rid of errors for commands that don't work on some devices
-    cfg.gsub! /^% Invalid input detected at '\^' marker\.$|^\s+\^$/, ''
+    cfg.gsub!(/^% Invalid input detected at '\^' marker\.$|^\s+\^$/, "")
     cfg.cut_both
   end
 
   # 数据脱敏
   cmd :secret do |cfg|
-    cfg.gsub! /^(snmp-server community).*/, '\\1 <configuration removed>'
-    cfg.gsub! /^(snmp-server host \S+( vrf \S+)?( informs?)?( version (1|2c|3 (noauth|auth|priv)))?)\s+\S+((\s+\S*)*)\s*/, '\\1 <secret hidden> \\7'
-    cfg.gsub! /^(username .+ (password|secret) \d) .+/, '\\1 <secret hidden>'
-    cfg.gsub! /^(enable (password|secret)( level \d+)? \d) .+/, '\\1 <secret hidden>'
-    cfg.gsub! /^(\s+(?:password|secret)) (?:\d )?\S+/, '\\1 <secret hidden>'
-    cfg.gsub! /^(.*wpa-psk ascii \d) (\S+)/, '\\1 <secret hidden>'
-    cfg.gsub! /^(.*key 7) (\d.+)/, '\\1 <secret hidden>'
-    cfg.gsub! /^(tacacs-server (.+ )?key) .+/, '\\1 <secret hidden>'
-    cfg.gsub! /^(crypto isakmp key) (\S+) (.*)/, '\\1 <secret hidden> \\3'
-    cfg.gsub! /^(\s+ip ospf message-digest-key \d+ md5) .+/, '\\1 <secret hidden>'
-    cfg.gsub! /^(\s+ip ospf authentication-key) .+/, '\\1 <secret hidden>'
-    cfg.gsub! /^(\s+neighbor \S+ password) .+/, '\\1 <secret hidden>'
-    cfg.gsub! /^(\s+vrrp \d+ authentication text) .+/, '\\1 <secret hidden>'
-    cfg.gsub! /^(\s+standby \d+ authentication) .{1,8}$/, '\\1 <secret hidden>'
-    cfg.gsub! /^(\s+standby \d+ authentication md5 key-string) .+?( timeout \d+)?$/, '\\1 <secret hidden> \\2'
-    cfg.gsub! /^(\s+key-string) .+/, '\\1 <secret hidden>'
-    cfg.gsub! /^((tacacs|radius) server [^\n]+\n(\s+[^\n]+\n)*\s+key) [^\n]+$/m, '\1 <secret hidden>'
-    cfg.gsub! /^(\s+ppp (chap|pap) password \d) .+/, '\\1 <secret hidden>'
+    cfg.gsub!(/^(snmp-server community).*/, '\\1 <configuration removed>')
+    cfg.gsub!(/^(snmp-server host \S+( vrf \S+)?( informs?)?( version (1|2c|3 (noauth|auth|priv)))?)\s+\S+((\s+\S*)*)\s*/, '\\1 <secret hidden> \\7')
+    cfg.gsub!(/^(username .+ (password|secret) \d) .+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(enable (password|secret)( level \d+)? \d) .+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(\s+(?:password|secret)) (?:\d )?\S+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(.*wpa-psk ascii \d) (\S+)/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(.*key 7) (\d.+)/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(tacacs-server (.+ )?key) .+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(crypto isakmp key) (\S+) (.*)/, '\\1 <secret hidden> \\3')
+    cfg.gsub!(/^(\s+ip ospf message-digest-key \d+ md5) .+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(\s+ip ospf authentication-key) .+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(\s+neighbor \S+ password) .+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(\s+vrrp \d+ authentication text) .+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(\s+standby \d+ authentication) .{1,8}$/, '\\1 <secret hidden>')
+    cfg.gsub!(/^(\s+standby \d+ authentication md5 key-string) .+?( timeout \d+)?$/, '\\1 <secret hidden> \\2')
+    cfg.gsub!(/^(\s+key-string) .+/, '\\1 <secret hidden>')
+    cfg.gsub!(/^((tacacs|radius) server [^\n]+\n(\s+[^\n]+\n)*\s+key) [^\n]+$/m, '\1 <secret hidden>')
+    cfg.gsub!(/^(\s+ppp (chap|pap) password \d) .+/, '\\1 <secret hidden>')
     cfg
   end
 
   # 查看设备版本并注释
-  cmd 'show version' do |cfg|
+  cmd "show version" do |cfg|
     comments = []
     comments << cfg.lines.first
     lines = cfg.lines
     lines.each_with_index do |line, i|
-      slave      = ''
-      slave_slot = ''
+      slave = ""
+      slave_slot = ""
 
       if line =~ /^Slave in slot (\d+) is running/
-        slave      = " Slave:"
+        slave = " Slave:"
         slave_slot = ", slot #{Regexp.last_match(1)}"
       end
 
@@ -82,17 +82,17 @@ class IOS < Oxidized::Model
       comments << "Memory: pcmcia #{Regexp.last_match(2)} #{Regexp.last_match(3)}#{Regexp.last_match(4)} #{Regexp.last_match(1)}" if line =~ /^(\d+[kK]) bytes of (Flash|ATA)?.*PCMCIA .*(slot|disk) ?(\d)/i
 
       if line =~ /(\S+(?:\sseries)?)\s+(?:\((\S+)\)\s+processor|\(revision[^)]+\)).*\s+with (\S+k) bytes/i
-        sproc    = Regexp.last_match(1)
-        cpu      = Regexp.last_match(2)
-        mem      = Regexp.last_match(3)
-        cpu_xtra = ''
+        sproc = Regexp.last_match(1)
+        cpu = Regexp.last_match(2)
+        mem = Regexp.last_match(3)
+        cpu_xtra = ""
         comments << "Chassis type:#{slave} #{sproc}"
         comments << "Memory:#{slave} main #{mem}"
         # check the next two lines for more CPU info
         comments << "Processor ID: #{Regexp.last_match(1)}" if cfg.lines[i + 1] =~ /processor board id (\S+)/i
         if cfg.lines[i + 2] =~ /(cpu at |processor: |#{cpu} processor,)/i
           # change implementation to impl and prepend comma
-          cpu_xtra = cfg.lines[i + 2].gsub(/implementation/, 'impl').gsub(/^/, ', ').chomp
+          cpu_xtra = cfg.lines[i + 2].gsub(/implementation/, "impl").gsub(/^/, ", ").chomp
         end
         comments << "CPU:#{slave} #{cpu}#{cpu_xtra}#{slave_slot}"
       end
@@ -107,39 +107,39 @@ class IOS < Oxidized::Model
   # 注释空白行
   # 裁剪 配置更新 时间
   # 如果 cfg 为空则设定为空
-  cmd 'show vtp status' do |cfg|
-    cfg.gsub! /^$\n/, ''
-    cfg.gsub! /Configuration last modified by.*\n/, ''
-    cfg.gsub! /^/, 'VTP: ' unless cfg.empty?
+  cmd "show vtp status" do |cfg|
+    cfg.gsub!(/^$\n/, "")
+    cfg.gsub!(/Configuration last modified by.*\n/, "")
+    cfg.gsub!(/^/, "VTP: ") unless cfg.empty?
     comment "#{cfg}\n"
   end
 
   # 查看设备模块并注释
-  cmd 'show inventory' do |cfg|
+  cmd "show inventory" do |cfg|
     comment cfg
   end
 
   # 查看设备运行配置
   post do
-    cmd_line = 'show running-config'
-    cmd_line += ' view full' if vars(:ios_rbac)
+    cmd_line = "show running-config"
+    cmd_line += " view full" if vars(:ios_rbac)
     # 执行脚本并裁剪修正
     cmd cmd_line do |cfg|
       cfg = cfg.each_line.to_a[3..-1]
-      cfg = cfg.reject { |line| line.match /^ntp clock-period / }.join
-      cfg = cfg.each_line.reject { |line| line.match /^! (Last|No) configuration change (at|since).*/ unless line =~ /\d+\sby\s\S+$/ }.join
-      cfg.gsub! /^Current configuration : [^\n]*\n/, ''
-      cfg.gsub! /^ tunnel mpls traffic-eng bandwidth[^\n]*\n*(
+      cfg = cfg.reject { |line| line.match(/^ntp clock-period /) }.join
+      cfg = cfg.each_line.reject { |line| line.match(/^! (Last|No) configuration change (at|since).*/) unless /\d+\sby\s\S+$/.match?(line) }.join
+      cfg.gsub!(/^Current configuration : [^\n]*\n/, "")
+      cfg.gsub!(/^ tunnel mpls traffic-eng bandwidth[^\n]*\n*(
                     (?: [^\n]*\n*)*
-                    tunnel mpls traffic-eng auto-bw)/mx, '\1'
+                    tunnel mpls traffic-eng auto-bw)/mx, '\1')
       cfg
     end
   end
 
   # 设置 telnet 账户登录参数
   cfg :telnet do
-    username /^Username:/i
-    password /^Password:/i
+    username(/^Username:/i)
+    password(/^Password:/i)
   end
 
   # 设置 telnet ssh 钩子函数相关参数
@@ -153,8 +153,8 @@ class IOS < Oxidized::Model
         cmd vars(:enable)
       end
     end
-    post_login 'terminal length 0'
-    post_login 'terminal width 0'
-    pre_logout 'exit'
+    post_login "terminal length 0"
+    post_login "terminal width 0"
+    pre_logout "exit"
   end
 end

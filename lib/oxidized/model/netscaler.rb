@@ -1,33 +1,33 @@
 class NetScaler < Oxidized::Model
   using Refinements
 
-  prompt /^([\w\.-]*>\s?)$/
-  comment '# '
+  prompt(/^([\w.-]*>\s?)$/)
+  comment "# "
 
   cmd :all do |cfg|
     cfg.each_line.to_a[1..-3].join
   end
 
-  cmd 'show version' do |cfg|
+  cmd "show version" do |cfg|
     comment cfg
   end
 
-  cmd 'show hardware' do |cfg|
+  cmd "show hardware" do |cfg|
     comment cfg
   end
 
-  cmd 'show partition' do |cfg|
+  cmd "show partition" do |cfg|
     comment cfg
   end
 
   cmd :secret do |cfg|
-    cfg.gsub! /\w+\s(-encrypted)/, '<secret hidden> \\1'
+    cfg.gsub!(/\w+\s(-encrypted)/, '<secret hidden> \\1')
     cfg
   end
 
   # check for multiple partitions
-  cmd 'show partition' do |cfg|
-    @is_multiple_partition = cfg.include? 'Name:'
+  cmd "show partition" do |cfg|
+    @is_multiple_partition = cfg.include? "Name:"
   end
 
   post do
@@ -40,15 +40,15 @@ class NetScaler < Oxidized::Model
 
   def single_partition
     # Single partition mode
-    cmd 'show ns ns.conf' do |cfg|
+    cmd "show ns ns.conf" do |cfg|
       cfg
     end
   end
 
   def multiple_partition
     # Multiple partition mode
-    cmd 'show partition' do |cfg|
-      allcfg     = ""
+    cmd "show partition" do |cfg|
+      allcfg = ""
       partitions = [["default"]] + cfg.scan(/Name: (\S+)$/)
       partitions.each do |part|
         allcfg = allcfg + "\n\n####################### [ partition " + part.join(" ") + " ] #######################\n\n"
@@ -61,6 +61,6 @@ class NetScaler < Oxidized::Model
   end
 
   cfg :ssh do
-    pre_logout 'exit'
+    pre_logout "exit"
   end
 end

@@ -6,10 +6,10 @@ class ALTEONOS < Oxidized::Model
   # (user@host) $
   # root#
   # user>
-  prompt /^\(?.+\)?\s?[#>]/
+  prompt(/^\(?.+\)?\s?[#>]/)
 
   # 设置注解
-  comment '! '
+  comment "! "
 
   # 设定脱敏信息
   cmd :secret do |cfg|
@@ -35,36 +35,36 @@ class ALTEONOS < Oxidized::Model
   ##############################################################################################
 
   # 打印设备运行配置
-  cmd 'cfg/dump' do |cfg|
-    cfg.gsub! /^([\s\t\/*]*Configuration).*/, ''
-    cfg.gsub! /^([\s\t\/*]*Version).*/, ''
-    cfg.gsub! /^([\s\t\/*]*To restore ).*/, ''
-    cfg.gsub! /^([\s\t\/*]*it is recommended to include).*/, ''
-    cfg.gsub! /^([\s\t\/*]*to include ).*/, ''
+  cmd "cfg/dump" do |cfg|
+    cfg.gsub!(/^([\s\t\/*]*Configuration).*/, "")
+    cfg.gsub!(/^([\s\t\/*]*Version).*/, "")
+    cfg.gsub!(/^([\s\t\/*]*To restore ).*/, "")
+    cfg.gsub!(/^([\s\t\/*]*it is recommended to include).*/, "")
+    cfg.gsub!(/^([\s\t\/*]*to include ).*/, "")
     cfg
   end
 
   # SSH 执行脚本期间自动交互式响应 -> Oxidized::Model#expects
   # Answer for Dispay private keys
-  expect /^Display private keys\?\s?\[y\/n\]: $/ do |_data, _re|
-    send "n\r"
+  expect(/^Display private keys\?\s?\[y\/n\]: $/) do |_data, _re|
+    send :"n\r"
     # data.sub re, ''
   end
 
   # Answer for sync to peer on exit
-  expect /^Confirm Sync to Peer\s?\[y\/n\]: $/ do |_data, _re|
-    send "n\r"
+  expect(/^Confirm Sync to Peer\s?\[y\/n\]: $/) do |_data, _re|
+    send :"n\r"
     # data.sub re, ''
   end
 
   # Answer for  Unsaved configuration
-  expect /^(WARNING: There are unsaved configuration changes).*/ do |_data, _re|
-    send "n\r"
+  expect(/^(WARNING: There are unsaved configuration changes).*/) do |_data, _re|
+    send :"n\r"
     # data.sub re, ''
   end
 
   # 登出前执行 exit
   cfg :ssh do
-    pre_logout 'exit'
+    pre_logout "exit"
   end
 end

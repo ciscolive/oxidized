@@ -1,10 +1,10 @@
 class TrueNAS < Oxidized::Model
   using Refinements
 
-  comment '# '
+  comment "# "
 
-  cmd('uname -a') { |cfg| comment cfg }
-  cmd('cat /etc/version') { |cfg| comment cfg }
+  cmd("uname -a") { |cfg| comment cfg }
+  cmd("cat /etc/version") { |cfg| comment cfg }
   cmd('sqlite3 "file:///data/freenas-v1.db?mode=ro&immutable=1" .dump') do |cfg|
     cfg.lines.reject do |line|
       line.match(/^INSERT INTO storage_replication /) ||
@@ -17,6 +17,6 @@ class TrueNAS < Oxidized::Model
   end
 
   cfg :ssh do
-    pre_logout 'exit'
+    pre_logout "exit"
   end
 end

@@ -22,29 +22,29 @@
 
 # exit if fork   ## TODO: proper daemonize
 
-require 'socket'
-require 'resolv'
-require_relative 'rest_client'
+require "socket"
+require "resolv"
+require_relative "rest_client"
 
 module Oxidized
-  require 'asetus'
+  require "asetus"
 
   class Config
-    ROOT_DIR = File.join Dir.home, '.config', 'oxidized'
+    ROOT_DIR = File.join Dir.home, ".config", "oxidized"
   end
 
-  CFGS = Asetus.new name: 'oxidized', load: false, key_to_s: true
+  CFGS = Asetus.new name: "oxidized", load: false, key_to_s: true
   CFGS.default.syslogd.port = 514
-  CFGS.default.syslogd.file = 'messages'
+  CFGS.default.syslogd.file = "messages"
   CFGS.default.syslogd.resolve = true
   CFGS.default.syslogd.dns_map = {
     '(.*)\.strip\.this\.domain\.com' => '\\1',
-    '(.*)\.also\.this\.net'          => '\\1'
+    '(.*)\.also\.this\.net' => '\\1'
   }
 
   begin
     CFGS.load
-  rescue StandardError => error
+  rescue => error
     raise InvalidConfig, "Error loading config: #{error.message}"
   ensure
     CFG = CFGS.cfg # convenienence, instead of Config.cfg.password, CFG.password
@@ -52,11 +52,11 @@ module Oxidized
 
   class SyslogMonitor
     MSG = {
-      ios:   /%SYS-(SW[0-9]+-)?5-CONFIG_I:/,
-      junos: 'UI_COMMIT:',
-      eos:   /%SYS-5-CONFIG_I:/,
-      nxos:  /%VSHD-5-VSHD_SYSLOG_CONFIG_I:/,
-      aruba: 'Notice-Type=\'Running'
+      ios: /%SYS-(SW[0-9]+-)?5-CONFIG_I:/,
+      junos: "UI_COMMIT:",
+      eos: /%SYS-5-CONFIG_I:/,
+      nxos: /%VSHD-5-VSHD_SYSLOG_CONFIG_I:/,
+      aruba: "Notice-Type='Running"
     }.freeze
 
     class << self
@@ -67,7 +67,7 @@ module Oxidized
       end
 
       def file(syslog_file = Oxidized::CFG.syslogd.file)
-        io = File.open syslog_file, 'r'
+        io = File.open syslog_file, "r"
         io.seek 0, IO::SEEK_END
         new io, :file
       end
@@ -91,19 +91,19 @@ module Oxidized
       opts
     end
 
-    alias nxos ios
-    alias eos ios
+    alias_method :nxos, :ios
+    alias_method :eos, :ios
 
     def junos(log, index, **opts)
       # TODO: we need to fetch 'ip/name' in mode == :file here
       opts[:user] = log[index + 2][1..-2]
-      opts[:msg] = log[(index + 6)..-1].join(' ')[10..-2]
-      opts.delete(:msg) if opts[:msg] == 'none'
+      opts[:msg] = log[(index + 6)..-1].join(" ")[10..-2]
+      opts.delete(:msg) if opts[:msg] == "none"
       opts
     end
 
     def aruba(log, index, **opts)
-      opts.merge user: log[index + 2].split('=')[4].split(',')[0][1..-2]
+      opts.merge user: log[index + 2].split("=")[4].split(",")[0][1..-2]
     end
 
     def handle_log(log, ipaddr)
@@ -138,7 +138,11 @@ module Oxidized
       if Oxidized::CFG.syslogd.resolve == false
         ipaddr
       else
-        name = (Resolv.getname ipaddr.to_s rescue ipaddr)
+        name = begin
+          Resolv.getname ipaddr.to_s
+        rescue
+          ipaddr
+        end
         Oxidized::CFG.syslogd.dns_map.each { |re, sub| name.sub! Regexp.new(re.to_s), sub }
         name
       end

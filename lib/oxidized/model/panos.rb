@@ -5,13 +5,13 @@ class PanOS < Oxidized::Model
   # PaloAlto PAN-OS model #
 
   # 配置注释符
-  comment '! '
+  comment "! "
 
   # 设置登录成功提示符
   # user@host:~>
   # root@server>
   # (venv) user@host:~>
-  prompt /^[\w.@:()-]+>\s?$/
+  prompt(/^[\w.@:()-]+>\s?$/)
 
   # 所有脚本执行均需要执行的逻辑 -- 自动移除首尾2个行
   cmd :all do |cfg|
@@ -19,24 +19,24 @@ class PanOS < Oxidized::Model
   end
 
   # 查看设备信息 -- 屏蔽每天更新变化的信息 --注释回显
-  cmd 'show system info' do |cfg|
-    cfg.gsub! /^(up)?time: .*$/, ''
-    cfg.gsub! /^app-.*?: .*$/, ''
-    cfg.gsub! /^av-.*?: .*$/, ''
-    cfg.gsub! /^threat-.*?: .*$/, ''
-    cfg.gsub! /^wildfire-.*?: .*$/, ''
-    cfg.gsub! /^wf-private.*?: .*$/, ''
-    cfg.gsub! /^url-filtering.*?: .*$/, ''
-    cfg.gsub! /^global-.*?: .*$/, ''
+  cmd "show system info" do |cfg|
+    cfg.gsub!(/^(up)?time: .*$/, "")
+    cfg.gsub!(/^app-.*?: .*$/, "")
+    cfg.gsub!(/^av-.*?: .*$/, "")
+    cfg.gsub!(/^threat-.*?: .*$/, "")
+    cfg.gsub!(/^wildfire-.*?: .*$/, "")
+    cfg.gsub!(/^wf-private.*?: .*$/, "")
+    cfg.gsub!(/^url-filtering.*?: .*$/, "")
+    cfg.gsub!(/^global-.*?: .*$/, "")
     comment cfg
   end
 
   # 查看运行配置
-  cmd 'show config running'
+  cmd "show config running"
 
   # 设定登录后钩子函数脚本配置
   cfg :ssh do
-    post_login 'set cli pager off'
-    pre_logout 'quit'
+    post_login "set cli pager off"
+    pre_logout "quit"
   end
 end

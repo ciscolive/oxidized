@@ -1,8 +1,8 @@
 class OneOS < Oxidized::Model
   using Refinements
 
-  prompt /^([\w.@()-]+#\s?)$/
-  comment '! '
+  prompt(/^([\w.@()-]+#\s?)$/)
+  comment "! "
 
   # example how to handle pager
   # expect /^\s--More--\s+.*$/ do |data, re|
@@ -24,43 +24,43 @@ class OneOS < Oxidized::Model
   end
 
   cmd :secret do |cfg|
-    cfg.gsub! /^(snmp set-read-community ").*+?(".*)$/, '\\1<secret hidden>\\2'
+    cfg.gsub!(/^(snmp set-read-community ").*+?(".*)$/, '\\1<secret hidden>\\2')
     cfg
   end
 
-  cmd 'show version' do |cfg|
+  cmd "show version" do |cfg|
     comment cfg
   end
 
-  cmd 'show system hardware' do |cfg|
+  cmd "show system hardware" do |cfg|
     comment cfg
   end
 
-  cmd 'show product-info-area' do |cfg|
+  cmd "show product-info-area" do |cfg|
     comment cfg
   end
 
-  cmd 'show running-config' do |cfg|
+  cmd "show running-config" do |cfg|
     cfg = cfg.each_line.to_a[0..-1].join
-    cfg.gsub! /^Building configuration...\s*[^\n]*\n/, ''
-    cfg.gsub! /^Current configuration :\s*[^\n]*\n/, ''
+    cfg.gsub!(/^Building configuration...\s*[^\n]*\n/, "")
+    cfg.gsub!(/^Current configuration :\s*[^\n]*\n/, "")
     cfg
   end
 
   cfg :telnet do
-    username /^Username:/
-    password /^Password:/
+    username(/^Username:/)
+    password(/^Password:/)
   end
 
   cfg :telnet, :ssh do
     # preferred way to handle additional passwords
     if vars :enable
       post_login do
-        send "enable\n"
+        send :"enable\n"
         cmd vars(:enable)
       end
     end
-    post_login 'term len 0'
-    pre_logout 'exit'
+    post_login "term len 0"
+    pre_logout "exit"
   end
 end

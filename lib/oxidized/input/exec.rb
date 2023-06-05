@@ -6,7 +6,7 @@ module Oxidized
 
     def connect(node)
       @node = node
-      @log  = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_exec.log", "w") if Oxidized.config.input.debug?
+      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_exec.log", "w") if Oxidized.config.input.debug?
       @node.model.cfg["exec"].each { |cb| instance_exec(&cb) }
     end
 
@@ -14,7 +14,7 @@ module Oxidized
       Oxidized.logger.debug "EXEC: #{cmd_str} @ #{@node.name}"
       # I'd really like to do popen3 with separate arguments, but that would
       # require refactoring cmd to take parameters
-      %x(#{cmd_str})
+      `#{cmd_str}`
     end
 
     private

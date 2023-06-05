@@ -1,41 +1,41 @@
 class OpenWrt < Oxidized::Model
   using Refinements
 
-  prompt /^[^#]+#/
-  comment '#'
+  prompt(/^[^#]+#/)
+  comment "#"
 
-  cmd 'cat /etc/banner' do |cfg|
+  cmd "cat /etc/banner" do |cfg|
     comment "#### Info: /etc/banner #####\n#{cfg}"
   end
 
-  cmd 'cat /proc/cpuinfo' do |cfg|
+  cmd "cat /proc/cpuinfo" do |cfg|
     comment "#### Info: /proc/cpuinfo #####\n#{cfg}"
   end
 
-  cmd 'cat /etc/openwrt_release' do |cfg|
+  cmd "cat /etc/openwrt_release" do |cfg|
     comment "#### Info: /etc/openwrt_release #####\n#{cfg}"
   end
 
-  cmd 'sysupgrade -l' do |cfg|
+  cmd "sysupgrade -l" do |cfg|
     @sysupgradefiles = cfg
     comment "#### Info: sysupgrade -l #####\n#{cfg}"
   end
 
-  cmd 'cat /proc/mtd' do |cfg|
+  cmd "cat /proc/mtd" do |cfg|
     @mtdpartitions = cfg
     comment "#### Info: /proc/mtd #####\n#{cfg}"
   end
 
   post do
-    cfg                  = []
-    binary_files         = vars(:openwrt_binary_files) || %w[/etc/dropbear/dropbear_rsa_host_key]
-    non_sensitive_files  = vars(:openwrt_non_sensitive_files) || %w[rpcd uhttpd]
+    cfg = []
+    binary_files = vars(:openwrt_binary_files) || %w[/etc/dropbear/dropbear_rsa_host_key]
+    non_sensitive_files = vars(:openwrt_non_sensitive_files) || %w[rpcd uhttpd]
     partitions_to_backup = vars(:openwrt_partitions_to_backup) || %w[art devinfo u_env config caldata]
     @sysupgradefiles.lines.each do |sysupgradefile|
       sysupgradefile = sysupgradefile.strip
-      if sysupgradefile.start_with?('/etc/config/')
-        unless sysupgradefile.end_with?('-opkg')
-          filename = sysupgradefile.split('/')[-1]
+      if sysupgradefile.start_with?("/etc/config/")
+        unless sysupgradefile.end_with?("-opkg")
+          filename = sysupgradefile.split("/")[-1]
           cfg << comment("#### File: #{sysupgradefile} #####")
           uciexport = cmd("uci export #{filename}")
           Oxidized.logger.debug "Exporting uci config - #{filename}"
@@ -50,8 +50,8 @@ class OpenWrt < Oxidized::Model
         cfg << comment("#### Binary file: #{sysupgradefile} #####")
         cfg << comment("Decode using 'echo -en <data> | gzip -dc > #{sysupgradefile}'")
         cfg << cmd("gzip -c #{sysupgradefile} | hexdump -ve '1/1 \"_x%.2x\"' | tr _ \\")
-      elsif vars(:remove_secret) && sysupgradefile == '/etc/shadow'
-        Oxidized.logger.debug 'Exporting and scrubbing /etc/shadow'
+      elsif vars(:remove_secret) && sysupgradefile == "/etc/shadow"
+        Oxidized.logger.debug "Exporting and scrubbing /etc/shadow"
         cfg << comment("#### File: #{sysupgradefile} #####")
         shadow = cmd("cat #{sysupgradefile}")
         shadow.gsub!(/^([^:]+:)[^:]*(:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:)/, '\\1\\2')
@@ -75,6 +75,6 @@ class OpenWrt < Oxidized::Model
 
   cfg :ssh do
     exec true
-    pre_logout 'exit'
+    pre_logout "exit"
   end
 end

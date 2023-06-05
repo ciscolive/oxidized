@@ -2,13 +2,13 @@ class SmartAX < Oxidized::Model
   using Refinements
 
   # Huawei SmartAX GPON/EPON/DOCSIS network access devices
-  prompt /^([\w.-]+[>#])$/
+  prompt(/^([\w.-]+[>#])$/)
 
-  comment '#'
+  comment "#"
 
   cfg :telnet do
-    username /^>>User name:$/
-    password /^>>User password:$/
+    username(/^>>User name:$/)
+    password(/^>>User password:$/)
   end
 
   cfg :ssh, :telnet do
@@ -21,7 +21,7 @@ class SmartAX < Oxidized::Model
 
   # 'display current-configuration' returns current configuration stored in memory
   # 'display saved-configuration'   returns configuration stored in the file system which is used upon reboot
-  cmd 'display current-configuration' do |cfg|
+  cmd "display current-configuration" do |cfg|
     cfg.cut_both
   end
 end

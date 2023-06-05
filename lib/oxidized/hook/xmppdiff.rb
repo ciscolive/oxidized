@@ -1,5 +1,5 @@
-require 'xmpp4r'
-require 'xmpp4r/muc/helper/simplemucclient'
+require "xmpp4r"
+require "xmpp4r/muc/helper/simplemucclient"
 
 class XMPPDiff < Oxidized::Hook
   def connect
@@ -10,7 +10,7 @@ class XMPPDiff < Oxidized::Hook
       Timeout.timeout(15) do
         begin
           @client.connect
-        rescue StandardError => e
+        rescue => e
           log "Failed to connect to XMPP: #{e}"
         end
         sleep 1
@@ -29,22 +29,22 @@ class XMPPDiff < Oxidized::Hook
     rescue Timeout::Error
       log "timed out"
       @client = nil
-      @muc    = nil
+      @muc = nil
     end
 
     @client.on_exception do
       log "XMPP connection aborted, reconnecting"
       @client = nil
-      @muc    = nil
+      @muc = nil
       connect
     end
   end
 
   def validate_cfg!
-    raise KeyError, 'hook.jid is required' unless cfg.has_key?('jid')
-    raise KeyError, 'hook.password is required' unless cfg.has_key?('password')
-    raise KeyError, 'hook.channel is required' unless cfg.has_key?('channel')
-    raise KeyError, 'hook.nick is required' unless cfg.has_key?('nick')
+    raise KeyError, "hook.jid is required" unless cfg.has_key?("jid")
+    raise KeyError, "hook.password is required" unless cfg.has_key?("password")
+    raise KeyError, "hook.channel is required" unless cfg.has_key?("channel")
+    raise KeyError, "hook.nick is required" unless cfg.has_key?("nick")
   end
 
   def run_hook(ctx)
@@ -53,11 +53,11 @@ class XMPPDiff < Oxidized::Hook
 
     begin
       Timeout.timeout(15) do
-        gitoutput = ctx.node.output.new
-        diff      = gitoutput.get_diff ctx.node, ctx.node.group, ctx.commitref, nil
+        git_output = ctx.node.output.new
+        diff = git_output.get_diff ctx.node, ctx.node.group, ctx.commitref, nil
 
         interesting = diff[:patch].lines.to_a[4..-1].any? do |line|
-          ["+", "-"].include?(line[0]) && (not ["#", "!"].include?(line[1]))
+          ["+", "-"].include?(line[0]) && !["#", "!"].include?(line[1])
         end
 
         if interesting

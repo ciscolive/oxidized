@@ -1,32 +1,34 @@
 module Oxidized
-  require 'ipaddr'
-  require 'oxidized/node'
+  require "ipaddr"
+  require "oxidized/node"
 
   class Oxidized::NotSupported < OxidizedError; end
 
   class Oxidized::NodeNotFound < OxidizedError; end
 
+  # nodes 默认继承数组对象
   class Nodes < Array
     # 实例属性
     attr_accessor :source, :jobs
-    alias put unshift
+    alias_method :put, :unshift
 
     def load(node_want = nil)
       with_lock do
-        new     = []
+        new = []
         @source = Oxidized.config.source.default
         Oxidized.mgr.add_source(@source) || raise(MethodNotFound, "cannot load node source '#{@source}', not found")
         Oxidized.logger.info "lib/oxidized/nodes.rb: Loading nodes"
 
-        nodes = Oxidized.mgr.source[@source].new.load node_want
+        # 加载数据源并展开为 nodes 对象
+        nodes = Oxidized.mgr.source[@source].new.load(node_want)
         nodes.each do |node|
           # we want to load specific node(s), not all of them
           # 一般用于页面直接发起配置备份任务
-          next unless node_want? node_want, node
+          next unless node_want?(node_want, node)
 
           begin
-            node_obj = Node.new node
-            new.push node_obj
+            node_obj = Node.new(node)
+            new.push(node_obj)
           rescue ModelNotFound => err
             Oxidized.logger.error "node %s raised %s with message '%s'" % [node, err.class, err.message]
           rescue Resolv::ResolvError => err
@@ -42,8 +44,16 @@ module Oxidized
     def node_want?(node_want, node)
       return true unless node_want
 
-      node_want_ip = (IPAddr.new(node_want) rescue false)
-      name_is_ip   = (IPAddr.new(node[:name]) rescue false)
+      node_want_ip = begin
+        IPAddr.new(node_want)
+      rescue
+        false
+      end
+      name_is_ip = begin
+        IPAddr.new(node[:name])
+      rescue
+        false
+      end
       # rubocop:todo Lint/DuplicateBranch
       if name_is_ip && (node_want_ip == node[:name])
         true
@@ -73,7 +83,7 @@ module Oxidized
     # 根据设备名称和属组查询输出配置 -- 查询节点配置信息(节点名称、属组)
     def fetch(node_name, group)
       yield_node_output(node_name) do |node, output|
-        output.fetch node, group
+        output.fetch(node, group)
       end
     end
 
@@ -84,11 +94,11 @@ module Oxidized
       return unless waiting.find_node_index(node)
 
       with_lock do
-        n       = del node
-        n.user  = opt['user']
-        n.email = opt['email']
-        n.msg   = opt['msg']
-        n.from  = opt['from']
+        n = del node
+        n.user = opt["user"]
+        n.email = opt["email"]
+        n.msg = opt["msg"]
+        n.from = opt["from"]
         # set last job to nil so that the node is picked for immediate update
         n.last = nil
         put n.inspect
@@ -96,7 +106,7 @@ module Oxidized
       end
     end
 
-    alias top next
+    alias_method :top, :next
 
     # 先进先出 -- 提取队列头部数据
     # @return [String] node from the head of the array
@@ -122,14 +132,14 @@ module Oxidized
     # 查询节点配置版本
     def get_version(node_name, group, oid)
       yield_node_output(node_name) do |node, output|
-        output.get_version node, group, oid
+        output.get_version(node, group, oid)
       end
     end
 
     # 查询版本差量
     def get_diff(node_name, group, oid1, oid2)
       yield_node_output(node_name) do |node, output|
-        output.get_diff node, group, oid1, oid2
+        output.get_diff(node, group, oid1, oid2)
       end
     end
 
@@ -140,10 +150,10 @@ module Oxidized
       super()
       @mutex = Mutex.new # we compete for the nodes with webapi thread
       if (nodes = opts.delete(:nodes))
-        replace nodes
+        replace(nodes)
       else
-        node = opts.delete :node
-        load node
+        node = opts.delete(:node)
+        load(node)
       end
     end
 
@@ -165,7 +175,7 @@ module Oxidized
     # @param node node which is removed from nodes list
     # @return [Node] deleted node
     def del(node)
-      delete_at find_node_index(node)
+      delete_at(find_node_index(node))
     end
 
     # 已运行备份的节点
@@ -177,7 +187,7 @@ module Oxidized
     # 待运行备份任务的节点 -- 飞运行状态
     # @return [Nodes] list of nodes waiting (not running)
     def waiting
-      Nodes.new nodes: select { |node| not node.running? }
+      Nodes.new nodes: select { |node| !node.running? }
     end
 
     # walks list of new nodes, if old node contains same name, adds last and
@@ -193,7 +203,7 @@ module Oxidized
       each do |node|
         if (i = old.find_node_index(node.name))
           node.stats = old[i].stats
-          node.last  = old[i].last
+          node.last = old[i].last
         end
       rescue Oxidized::NodeNotFound
         Oxidized.logger.error "#{node.name} NodeNotFound"
@@ -204,8 +214,8 @@ module Oxidized
     # 将运行配置转储 -- 线程锁
     def yield_node_output(node_name)
       with_lock do
-        node   = find { |n| n.name == node_name }
-        output = node.output.new
+        node = find { |n| n.name == node_name }
+        output = node&.output&.new
         raise Oxidized::NotSupported unless output.respond_to? :fetch
 
         yield node, output

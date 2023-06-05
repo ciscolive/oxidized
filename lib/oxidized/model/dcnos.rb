@@ -7,42 +7,42 @@
 class DCNOS < Oxidized::Model
   using Refinements
 
-  comment '! '
+  comment "! "
 
   cmd :all do |cfg|
     cfg.cut_head
   end
 
-  cmd 'show version' do |cfg|
-    cfg.gsub! /\s(Uptime is).*/, ''
+  cmd "show version" do |cfg|
+    cfg.gsub!(/\s(Uptime is).*/, "")
     comment cfg
   end
 
-  cmd 'show boot-files' do |cfg|
+  cmd "show boot-files" do |cfg|
     comment cfg
   end
 
-  cmd 'show flash' do |cfg|
+  cmd "show flash" do |cfg|
     comment cfg
   end
 
-  cmd 'show running-config' do |cfg|
+  cmd "show running-config" do |cfg|
     cfg
   end
 
   cfg :telnet do
-    username /^login:/i
-    password /^password:/i
+    username(/^login:/i)
+    password(/^password:/i)
   end
 
   cfg :telnet, :ssh do
     if vars :enable
       post_login do
-        send "enable\n"
+        send :"enable\n"
         cmd vars(:enable)
       end
     end
-    post_login 'terminal length 0'
-    pre_logout 'exit'
+    post_login "terminal length 0"
+    pre_logout "exit"
   end
 end

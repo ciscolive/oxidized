@@ -4,44 +4,44 @@ class ASA < Oxidized::Model
   # Cisco ASA model #
   # Only SSH supported for the sake of security
 
-  prompt /^\r*([\w.@()-\/]+[#>]\s?)$/
-  comment '! '
+  prompt(/^\r*([\w.@()-\/]+[#>]\s?)$/)
+  comment "! "
 
   cmd :all do |cfg|
     cfg.cut_both
   end
 
   cmd :secret do |cfg|
-    cfg.gsub! /enable password (\S+) (.*)/, 'enable password <secret hidden> \2'
-    cfg.gsub! /^passwd (\S+) (.*)/, 'passwd <secret hidden> \2'
-    cfg.gsub! /username (\S+) password (\S+) (.*)/, 'username \1 password <secret hidden> \3'
-    cfg.gsub! /(ikev[12] ((remote|local)-authentication )?pre-shared-key) (\S+)/, '\1 <secret hidden>'
-    cfg.gsub! /^(aaa-server TACACS\+? \(\S+\) host[^\n]*\n(\s+[^\n]+\n)*\skey) \S+$/mi, '\1 <secret hidden>'
-    cfg.gsub! /^(aaa-server \S+ \(\S+\) host[^\n]*\n(\s+[^\n]+\n)*\s+key) \S+$/mi, '\1 <secret hidden>'
-    cfg.gsub! /ldap-login-password (\S+)/, 'ldap-login-password <secret hidden>'
-    cfg.gsub! /^snmp-server host (.*) community (\S+)/, 'snmp-server host \1 community <secret hidden>'
-    cfg.gsub! /^(failover key) .+/, '\1 <secret hidden>'
-    cfg.gsub! /^(\s+ospf message-digest-key \d+ md5) .+/, '\1 <secret hidden>'
-    cfg.gsub! /^(\s+ospf authentication-key) .+/, '\1 <secret hidden>'
-    cfg.gsub! /^(\s+neighbor \S+ password) .+/, '\1 <secret hidden>'
+    cfg.gsub!(/enable password (\S+) (.*)/, 'enable password <secret hidden> \2')
+    cfg.gsub!(/^passwd (\S+) (.*)/, 'passwd <secret hidden> \2')
+    cfg.gsub!(/username (\S+) password (\S+) (.*)/, 'username \1 password <secret hidden> \3')
+    cfg.gsub!(/(ikev[12] ((remote|local)-authentication )?pre-shared-key) (\S+)/, '\1 <secret hidden>')
+    cfg.gsub!(/^(aaa-server TACACS\+? \(\S+\) host[^\n]*\n(\s+[^\n]+\n)*\skey) \S+$/mi, '\1 <secret hidden>')
+    cfg.gsub!(/^(aaa-server \S+ \(\S+\) host[^\n]*\n(\s+[^\n]+\n)*\s+key) \S+$/mi, '\1 <secret hidden>')
+    cfg.gsub!(/ldap-login-password (\S+)/, "ldap-login-password <secret hidden>")
+    cfg.gsub!(/^snmp-server host (.*) community (\S+)/, 'snmp-server host \1 community <secret hidden>')
+    cfg.gsub!(/^(failover key) .+/, '\1 <secret hidden>')
+    cfg.gsub!(/^(\s+ospf message-digest-key \d+ md5) .+/, '\1 <secret hidden>')
+    cfg.gsub!(/^(\s+ospf authentication-key) .+/, '\1 <secret hidden>')
+    cfg.gsub!(/^(\s+neighbor \S+ password) .+/, '\1 <secret hidden>')
     cfg
   end
 
   # check for multiple contexts
-  cmd 'show mode' do |cfg|
-    @is_multiple_context = cfg.include? 'multiple'
+  cmd "show mode" do |cfg|
+    @is_multiple_context = cfg.include? "multiple"
   end
 
-  cmd 'show version' do |cfg|
+  cmd "show version" do |cfg|
     # avoid commits due to uptime / ixo-router01 up 2 mins 28 secs / ixo-router01 up 1 days 2 hours
-    cfg = cfg.each_line.reject { |line| line.match /(\s+up\s+\d+\s+)|(.*days.*)/ }
+    cfg = cfg.each_line.reject { |line| line.match(/(\s+up\s+\d+\s+)|(.*days.*)/) }
     cfg = cfg.join
-    cfg.gsub! /^Configuration has not been modified since last system restart.*\n/, ''
-    cfg.gsub! /^Configuration last modified by.*\n/, ''
+    cfg.gsub!(/^Configuration has not been modified since last system restart.*\n/, "")
+    cfg.gsub!(/^Configuration last modified by.*\n/, "")
     comment cfg
   end
 
-  cmd 'show inventory' do |cfg|
+  cmd "show inventory" do |cfg|
     comment cfg
   end
 
@@ -56,19 +56,19 @@ class ASA < Oxidized::Model
   cfg :ssh do
     if vars :enable
       post_login do
-        send "enable\n"
+        send :"enable\n"
         cmd vars(:enable)
       end
     end
-    post_login 'terminal pager 0'
-    pre_logout 'exit'
+    post_login "terminal pager 0"
+    pre_logout "exit"
   end
 
   def single_context
     # Single context mode
-    cmd 'more system:running-config' do |cfg|
+    cmd "more system:running-config" do |cfg|
       cfg = cfg.each_line.to_a[3..-1].join
-      cfg.gsub! /^: [^\n]*\n/, ''
+      cfg.gsub!(/^: [^\n]*\n/, "")
       # backup any xml referenced in the configuration.
       anyconnect_profiles = cfg.scan(Regexp.new('(\sdisk0:/.+\.xml)')).flatten
       anyconnect_profiles.each do |profile|
@@ -90,11 +90,11 @@ class ASA < Oxidized::Model
 
   def multiple_context
     # Multiple context mode
-    cmd 'changeto system' do |cfg|
-      cmd 'show running-config' do |system_cfg|
-        all_cfg  = "\n\n" + system_cfg + "\n\n"
+    cmd "changeto system" do |cfg|
+      cmd "show running-config" do |system_cfg|
+        all_cfg = "\n\n" + system_cfg + "\n\n"
         contexts = system_cfg.scan(/^context (\S+)$/)
-        files    = system_cfg.scan(/config-url (\S+)$/)
+        files = system_cfg.scan(/config-url (\S+)$/)
         contexts.each_with_index do |cont, i|
           all_cfg = all_cfg + "\n\n----------========== [ CONTEXT " + cont.join(" ") + " FILE " + files[i].join(" ") + " ] ==========----------\n\n"
           cmd "more " + files[i].join(" ") do |cfg_context|

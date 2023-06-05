@@ -9,13 +9,13 @@ module Oxidized
     def setup
       return unless @cfg.url.empty?
 
-      Oxidized.asetus.user.source.http.url       = 'http://www.example.com/devices'
-      Oxidized.asetus.user.source.http.user      = 'username'
-      Oxidized.asetus.user.source.http.pass      = 'password'
-      Oxidized.asetus.user.source.http.map.name  = 0
+      Oxidized.asetus.user.source.http.url = "http://www.example.com/devices"
+      Oxidized.asetus.user.source.http.user = "username"
+      Oxidized.asetus.user.source.http.pass = "password"
+      Oxidized.asetus.user.source.http.map.name = 0
       Oxidized.asetus.user.source.http.map.model = 1
       Oxidized.asetus.save :user
-      raise NoConfig, 'no source http url config, edit ~/.config/oxidized/config'
+      raise NoConfig, "no source http url config, edit ~/.config/oxidized/config"
     end
 
     # 加载依赖
@@ -72,10 +72,10 @@ module Oxidized
 
     # 发起 http 请求并读取 body
     def read_http(node_want)
-      uri               = URI.parse(@cfg.url)
-      http              = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl      = true if uri.scheme == 'https'
-      http.verify_mode  = OpenSSL::SSL::VERIFY_NONE unless @cfg.secure
+      uri = URI.parse(@cfg.url)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true if uri.scheme == "https"
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE unless @cfg.secure
 
       # Add read_timeout to handle case of big list of nodes (default value is 60 seconds)
       http.read_timeout = Integer(@cfg.read_timeout) if @cfg.has_key? "read_timeout"

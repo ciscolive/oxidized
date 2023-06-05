@@ -1,22 +1,22 @@
 class FortiWLC < Oxidized::Model
   using Refinements
 
-  comment '# '
+  comment "# "
 
   cmd :all do |cfg, cmdstring|
     new_cfg = comment "COMMAND: #{cmdstring}\n"
     new_cfg << cfg.each_line.to_a[1..-2].map { |line| line.gsub(/(conf_file_ver=)(.*)/, '\1<stripped>\3') }.join
   end
 
-  prompt /^([-\w.\/:?\[\]()]+[#>]\s?)$/
+  prompt(/^([-\w.\/:?\[\]()]+[#>]\s?)$/)
 
-  cmd 'show controller' do |cfg|
+  cmd "show controller" do |cfg|
     comment cfg
   end
-  cmd 'show ap' do |cfg|
+  cmd "show ap" do |cfg|
     comment cfg
   end
-  cmd 'show running-config' do |cfg|
+  cmd "show running-config" do |cfg|
     comment cfg
   end
 

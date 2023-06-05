@@ -3,8 +3,8 @@ class Comware < Oxidized::Model
   using Refinements
 
   # sometimes the prompt might have a leading nul or trailing ASCII Bell (^G)
-  prompt /^\0*(<[\w.-]+>).?$/
-  comment '# '
+  prompt(/^\0*(<[\w.-]+>).?$/)
+  comment "# "
 
   # example how to handle pager
   # expect /^\s*---- More ----$/ do |data, re|
@@ -20,15 +20,15 @@ class Comware < Oxidized::Model
   end
 
   cmd :secret do |cfg|
-    cfg.gsub! /^( snmp-agent community).*/, '\\1 <configuration removed>'
-    cfg.gsub! /^( password hash).*/, '\\1 <configuration removed>'
-    cfg.gsub! /^( password cipher).*/, '\\1 <configuration removed>'
+    cfg.gsub!(/^( snmp-agent community).*/, '\\1 <configuration removed>')
+    cfg.gsub!(/^( password hash).*/, '\\1 <configuration removed>')
+    cfg.gsub!(/^( password cipher).*/, '\\1 <configuration removed>')
     cfg
   end
 
   cfg :telnet do
-    username /^(Username|login):/
-    password /^Password:/
+    username(/^(Username|login):/)
+    password(/^Password:/)
   end
 
   cfg :telnet, :ssh do
@@ -47,43 +47,43 @@ class Comware < Oxidized::Model
     if vars :comware_cmdline
       post_login do
         # HP V1910, V1920
-        cmd '_cmdline-mode on', /(#{@node.prompt}|Continue)/
-        cmd 'y', /(#{@node.prompt}|input password)/
+        cmd "_cmdline-mode on", /(#{@node.prompt}|Continue)/
+        cmd "y", /(#{@node.prompt}|input password)/
         cmd vars(:comware_cmdline)
 
         # HP V1950 r2432P06
-        cmd 'xtd-cli-mode on', /(#{@node.prompt}|Continue)/
-        cmd 'y', /(#{@node.prompt}|input password)/
+        cmd "xtd-cli-mode on", /(#{@node.prompt}|Continue)/
+        cmd "y", /(#{@node.prompt}|input password)/
         cmd vars(:comware_cmdline)
 
         # HP V1950 OS r3208 (v7.1)
         # HPE Office Connect 1950
-        cmd 'xtd-cli-mode', /(#{@node.prompt}|Continue|Switch)/
-        cmd 'y', /(#{@node.prompt}|input password|Password:)/
+        cmd "xtd-cli-mode", /(#{@node.prompt}|Continue|Switch)/
+        cmd "y", /(#{@node.prompt}|input password|Password:)/
         cmd vars(:comware_cmdline)
       end
     end
 
-    post_login 'screen-length disable'
-    post_login 'undo terminal monitor'
-    pre_logout 'quit'
+    post_login "screen-length disable"
+    post_login "undo terminal monitor"
+    pre_logout "quit"
   end
 
-  cmd 'display version' do |cfg|
-    cfg = cfg.each_line.reject { |l| l.match /uptime/i }.join
+  cmd "display version" do |cfg|
+    cfg = cfg.each_line.reject { |l| l.match(/uptime/i) }.join
     comment cfg
   end
 
-  cmd 'display device' do |cfg|
+  cmd "display device" do |cfg|
     comment cfg
   end
 
-  cmd 'display device manuinfo' do |cfg|
-    cfg = cfg.each_line.reject { |l| l.match 'FF'.hex.chr }.join
+  cmd "display device manuinfo" do |cfg|
+    cfg = cfg.each_line.reject { |l| l.match "FF".hex.chr }.join
     comment cfg
   end
 
-  cmd 'display current-configuration' do |cfg|
+  cmd "display current-configuration" do |cfg|
     cfg
   end
 end

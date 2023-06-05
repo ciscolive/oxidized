@@ -3,17 +3,17 @@ class EdgeSwitch < Oxidized::Model
 
   # Ubiquiti EdgeSwitch #
 
-  comment '!'
+  comment "!"
 
-  prompt /\(.*\)\s[#>]/
+  prompt(/\(.*\)\s[#>]/)
 
-  cmd 'show running-config' do |cfg|
+  cmd "show running-config" do |cfg|
     cfg.each_line.to_a[2..-2].reject { |line| line.match(/System Up Time.*/) || line.match(/Current SNTP Synchronized Time.*/) }.join
   end
 
   cfg :telnet do
-    username /User(name)?:\s?/
-    password /^Password:\s?/
+    username(/User(name)?:\s?/)
+    password(/^Password:\s?/)
   end
 
   cfg :telnet, :ssh do
@@ -24,9 +24,9 @@ class EdgeSwitch < Oxidized::Model
         cmd "enable", /^[pP]assword:/
         cmd vars(:enable)
       end
-      cmd 'terminal length 0'
+      cmd "terminal length 0"
     end
-    pre_logout 'quit'
-    pre_logout 'n'
+    pre_logout "quit"
+    pre_logout "n"
   end
 end

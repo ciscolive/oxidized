@@ -6,7 +6,7 @@ class CiscoVPN3k < Oxidized::Model
   # "227 Passive mode OK (172,16,0,9,4,9 )"
   # so use active ftp if you can. Or patch net/ftp
 
-  cmd 'CONFIG'
+  cmd "CONFIG"
 
   cfg :ftp do
   end

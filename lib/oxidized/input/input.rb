@@ -9,7 +9,7 @@ module Oxidized
       debug: [
         Errno::ECONNREFUSED
       ],
-      warn:  [
+      warn: [
         IOError,
         PromptUndetect,
         Timeout::Error,

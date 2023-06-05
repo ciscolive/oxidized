@@ -1,10 +1,10 @@
 class AxOS < Oxidized::Model
   using Refinements
 
-  prompt /(\x1b\[\?7h)?([\w.@()-]+[#]\s?)$/
-  comment '! '
+  prompt(/(\x1b\[\?7h)?([\w.@()-]+\#\s?)$/)
+  comment "! "
 
-  cmd 'show running-config | nomore' do |cfg|
+  cmd "show running-config | nomore" do |cfg|
     cfg.cut_head
   end
 
@@ -13,6 +13,6 @@ class AxOS < Oxidized::Model
   end
 
   cfg :ssh do
-    pre_logout 'exit'
+    pre_logout "exit"
   end
 end

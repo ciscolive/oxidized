@@ -13,15 +13,16 @@ module Oxidized
     # 实例化函数
     def initialize(_args)
       # 实例化 mgr hooks
-      Oxidized.mgr   = Manager.new
+      Oxidized.mgr = Manager.new
       Oxidized.hooks = HookManager.from_config(Oxidized.config)
       # 实例化并加载节点清单
       nodes = Nodes.new
-      raise NoNodesFound, 'source returns no usable nodes' if nodes.size.zero?
+      raise NoNodesFound, "source returns no usable nodes" if nodes.size.zero?
 
-      @worker = Worker.new nodes
+      # 启动节点配置备份调度器
+      @worker = Worker.new(nodes)
       # HUP 信号通常用于重启或重新加载配置文件。通过使用 trap 方法，你可以捕获和处理指定的信号，执行相应的操作
-      trap('HUP') { nodes.load }
+      trap("HUP") { nodes.load }
 
       if Oxidized.config.rest?
         begin

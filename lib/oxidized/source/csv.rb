@@ -8,22 +8,22 @@ module Oxidized
     # 自动装配
     def setup
       if @cfg.empty?
-        Oxidized.asetus.user.source.csv.file      = File.join(Config::ROOT_DIR, 'router.db')
+        Oxidized.asetus.user.source.csv.file = File.join(Config::ROOT_DIR, "router.db")
         Oxidized.asetus.user.source.csv.delimiter = /:/
-        Oxidized.asetus.user.source.csv.map.name  = 0
+        Oxidized.asetus.user.source.csv.map.name = 0
         Oxidized.asetus.user.source.csv.map.model = 1
-        Oxidized.asetus.user.source.csv.gpg       = false
+        Oxidized.asetus.user.source.csv.gpg = false
         Oxidized.asetus.save :user
-        raise NoConfig, 'no source csv config, edit ~/.config/oxidized/config'
+        raise NoConfig, "no source csv config, edit ~/.config/oxidized/config"
       end
-      require 'gpgme' if @cfg.gpg?
+      require "gpgme" if @cfg.gpg?
     end
 
     def load(_node_want = nil)
       nodes = []
       open_file.each_line do |line|
         # 跳过注解行
-        next if line =~ /^\s*#/
+        next if /^\s*#/.match?(line)
 
         # 去除换行符并切割字串，保留所有的空白栏数据。如果数据为空则跳过
         data = line.chomp.split(@cfg.delimiter, -1)

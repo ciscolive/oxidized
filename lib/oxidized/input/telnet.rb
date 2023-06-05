@@ -1,6 +1,6 @@
 module Oxidized
-  require 'net/telnet'
-  require 'oxidized/input/cli'
+  require "net/telnet"
+  require "oxidized/input/cli"
 
   class Telnet < Input
     RescueFail = {}.freeze
@@ -9,34 +9,34 @@ module Oxidized
 
     # Telnet 登录主题逻辑
     def connect(node)
-      @node    = node
+      @node = node
       @timeout = Oxidized.config.timeout
       # telnet 相关回调函数
-      @node.model.cfg['telnet'].each { |cb| instance_exec(&cb) }
-      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_telnet.log", 'w') if Oxidized.config.input.debug?
+      @node.model.cfg["telnet"].each { |cb| instance_exec(&cb) }
+      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_telnet.log", "w") if Oxidized.config.input.debug?
       port = vars(:telnet_port) || 23
 
       # 相关参数
       telnet_opts = {
-        'Host'    => @node.ip,
-        'Port'    => port.to_i,
-        'Timeout' => @timeout,
-        'Model'   => @node.model,
-        'Log'     => @log
+        "Host" => @node.ip,
+        "Port" => port.to_i,
+        "Timeout" => @timeout,
+        "Model" => @node.model,
+        "Log" => @log
       }
 
       @telnet = Net::Telnet.new telnet_opts
       begin
         login
       rescue Timeout::Error
-        raise PromptUndetect, ['unable to detect prompt:', @node.prompt].join(' ')
+        raise PromptUndetect, ["unable to detect prompt:", @node.prompt].join(" ")
       end
       connected?
     end
 
     # 判定是否已经登录
     def connected?
-      @telnet && (not @telnet.sock.closed?)
+      @telnet && !@telnet.sock.closed?
     end
 
     # 脚本下发
@@ -46,7 +46,7 @@ module Oxidized
 
       # create a string to be passed to oxidized_expect and modified _there_
       # default to a single space so it shouldn't be coerced to nil by any models.
-      out = String(' ')
+      out = String(" ")
       @telnet.puts(cmd_str)
       @telnet.oxidized_expect(timeout: @timeout, expect: expect, out: out)
       out
@@ -77,7 +77,13 @@ module Oxidized
       # Ignored
     ensure
       @log.close if Oxidized.config.input.debug?
-      (@telnet.close rescue true) unless @telnet.sock.closed?
+      unless @telnet.sock.closed?
+        begin
+          @telnet.close
+        rescue
+          true
+        end
+      end
     end
   end
 end
@@ -90,31 +96,31 @@ module Net
 
     def oxidized_expect(options)
       model = @options["Model"]
-      @log  = @options["Log"]
+      @log = @options["Log"]
 
-      expects  = [options[:expect]].flatten
+      expects = [options[:expect]].flatten
       time_out = options[:timeout] || @options["Timeout"] || Oxidized.config.timeout?
 
       Timeout.timeout(time_out) do
         line = ""
         rest = ""
-        buf  = ""
+        buf = ""
         loop do
-          c       = @sock.readpartial(1024 * 1024)
+          c = @sock.readpartial(1024 * 1024)
           @output = c
-          c       = rest + c
+          c = rest + c
 
           if Integer(c.rindex(/#{IAC}#{SE}/no) || 0) <
-             Integer(c.rindex(/#{IAC}#{SB}/no) || 0)
-            buf  = preprocess(c[0...c.rindex(/#{IAC}#{SB}/no)])
+              Integer(c.rindex(/#{IAC}#{SB}/no) || 0)
+            buf = preprocess(c[0...c.rindex(/#{IAC}#{SB}/no)])
             rest = c[c.rindex(/#{IAC}#{SB}/no)..-1]
           elsif (pt = c.rindex(/#{IAC}[^#{IAC}#{AO}#{AYT}#{DM}#{IP}#{NOP}]?\z/no) ||
             c.rindex(/\r\z/no))
-            buf  = preprocess(c[0...pt])
+            buf = preprocess(c[0...pt])
             rest = c[pt..-1]
           else
-            buf  = preprocess(c)
-            rest = ''
+            buf = preprocess(c)
+            rest = ""
           end
           if Oxidized.config.input.debug?
             @log.print buf

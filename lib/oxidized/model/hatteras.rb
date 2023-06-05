@@ -3,18 +3,18 @@ class Hatteras < Oxidized::Model
 
   # Hatteras Networks
 
-  prompt /^(\r?[\w.@()-]+[#>]\s?)$/
-  comment '# '
+  prompt(/^(\r?[\w.@()-]+[#>]\s?)$/)
+  comment "# "
 
-  expect /WARNING: System configuration changes will be lost when the device restarts./ do |data, re|
-    send "y\r"
-    data.sub re, ''
+  expect(/WARNING: System configuration changes will be lost when the device restarts./) do |data, re|
+    send :"y\r"
+    data.sub re, ""
   end
 
   cmd :secret do |cfg|
-    cfg.gsub! /^(community) \S+/, '\\1 "<configuration removed>"'
-    cfg.gsub! /^(communityString) "\S+"/, '\\1 "<configuration removed>"'
-    cfg.gsub! /^(key) "\S+"/, '\\1 "<secret hidden>"'
+    cfg.gsub!(/^(community) \S+/, '\\1 "<configuration removed>"')
+    cfg.gsub!(/^(communityString) "\S+"/, '\\1 "<configuration removed>"')
+    cfg.gsub!(/^(key) "\S+"/, '\\1 "<secret hidden>"')
     cfg
   end
 
@@ -47,8 +47,8 @@ class Hatteras < Oxidized::Model
   end
 
   cfg :telnet do
-    username /^Login:/
-    password /^Password:/
+    username(/^Login:/)
+    password(/^Password:/)
   end
 
   cfg :telnet, :ssh do

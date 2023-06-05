@@ -1,5 +1,5 @@
-require_relative '../spec_helper'
-require 'oxidized/source/http'
+require_relative "../spec_helper"
+require "oxidized/source/http"
 
 describe Oxidized::HTTP do
   before(:each) do
@@ -9,8 +9,8 @@ describe Oxidized::HTTP do
 
   describe "#string_navigate" do
     h1 = {}
-    h1["inventory"] = [{ "ip" => "10.10.10.10" }]
-    h1["jotain"] = { "2" => "jotain" }
+    h1["inventory"] = [{"ip" => "10.10.10.10"}]
+    h1["jotain"] = {"2" => "jotain"}
     it "should be able to navigate multilevel-hash" do
       http = Oxidized::HTTP.new
       _(http.class).must_equal Oxidized::HTTP

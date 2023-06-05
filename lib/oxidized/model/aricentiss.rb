@@ -6,14 +6,14 @@
 class AricentISS < Oxidized::Model
   using Refinements
 
-  prompt /^(\e\[27m)?[ \r]*[\w-]+# ?$/
+  prompt(/^(\e\[27m)?[ \r]*[\w-]+# ?$/)
 
   cfg :ssh do
     # "pagination" was misspelled in some (earlier) versions (at least 1.0.16-9)
     # 1.0.18-15 is known to include the corrected spelling
-    post_login 'no cli pagination'
-    post_login 'no cli pagignation'
-    pre_logout 'exit'
+    post_login "no cli pagination"
+    post_login "no cli pagignation"
+    pre_logout "exit"
   end
 
   cmd :all do |cfg|
@@ -27,18 +27,18 @@ class AricentISS < Oxidized::Model
     cfg.gsub(/^(snmp community) .*/, '\1 <hidden>')
   end
 
-  cmd 'show system information' do |cfg|
-    cfg.sub! /^Device Up Time.*\n/, ''
+  cmd "show system information" do |cfg|
+    cfg.sub!(/^Device Up Time.*\n/, "")
     cfg.delete! "\r"
-    comment(cfg).gsub(/ +$/, '')
+    comment(cfg).gsub(/ +$/, "")
   end
 
-  cmd 'show running-config' do |cfg|
+  cmd "show running-config" do |cfg|
     comment_next = 0
     cfg.each_line.map do |l|
-      next '' if l =~ /^Building configuration/
+      next "" if /^Building configuration/.match?(l)
 
-      comment_next = 2 if l =~ /^Switch ID.*Hardware Version.*Firmware Version/
+      comment_next = 2 if /^Switch ID.*Hardware Version.*Firmware Version/.match?(l)
 
       if comment_next.positive?
         comment_next -= 1
@@ -46,6 +46,6 @@ class AricentISS < Oxidized::Model
       end
 
       l
-    end.join.gsub(/ +$/, '')
+    end.join.gsub(/ +$/, "")
   end
 end

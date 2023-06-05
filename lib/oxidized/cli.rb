@@ -1,8 +1,8 @@
 module Oxidized
   class CLI
-    require 'slop'
-    require 'oxidized'
-    require 'English'
+    require "slop"
+    require "oxidized"
+    require "English"
 
     def run
       check_pid
@@ -11,7 +11,7 @@ module Oxidized
       begin
         Oxidized.logger.info "Oxidized starting, running as pid #{$PROCESS_ID}"
         Oxidized.new
-      rescue StandardError => error
+      rescue => error
         crash error
         raise
       end
@@ -31,33 +31,33 @@ module Oxidized
 
     def crash(error)
       Oxidized.logger.fatal "Oxidized crashed, crash_file written in #{Config::CRASH_DIR}"
-      File.open Config::CRASH_DIR, 'w' do |file|
-        file.puts '-' * 50
+      File.open Config::CRASH_DIR, "w" do |file|
+        file.puts "-" * 50
         file.puts Time.now.utc + (8 * 60 * 60)
-        file.puts error.message + ' [' + error.class.to_s + ']'
-        file.puts '-' * 50
+        file.puts error.message + " [" + error.class.to_s + "]"
+        file.puts "-" * 50
         file.puts error.backtrace
-        file.puts '-' * 50
+        file.puts "-" * 50
       end
     end
 
     def parse_opts
       opts = Slop.parse do |opt|
-        opt.on '-d', '--debug', 'turn on debugging'
-        opt.on '--daemonize', 'Daemonize/fork the process'
+        opt.on "-d", "--debug", "turn on debugging"
+        opt.on "--daemonize", "Daemonize/fork the process"
         # 项目使用说明
-        opt.on '-h', '--help', 'show usage' do
+        opt.on "-h", "--help", "show usage" do
           puts opt
           exit
         end
         # 项目详细配置
-        opt.on '-a', '--show-exhaustive-config', 'output entire configuration, including defaults' do
+        opt.on "-a", "--show-exhaustive-config", "output entire configuration, including defaults" do
           asetus = Config.load
           puts asetus.to_yaml asetus.cfg
           Kernel.exit
         end
         # 查看项目版本
-        opt.on '-v', '--version', 'show version' do
+        opt.on "-v", "--version", "show version" do
           puts Oxidized::VERSION_FULL
           Kernel.exit
         end

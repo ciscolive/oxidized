@@ -1,12 +1,12 @@
 module Oxidized
-  require 'stringio'
-  require_relative 'cli'
+  require "stringio"
+  require_relative "cli"
 
   # 尝试加载 tftp 模块
   begin
-    require 'net/tftp'
+    require "net/tftp"
   rescue LoadError
-    raise OxidizedError, 'net/tftp not found: sudo gem install net-tftp'
+    raise OxidizedError, "net/tftp not found: sudo gem install net-tftp"
   end
 
   class TFTP < Input
@@ -16,8 +16,8 @@ module Oxidized
     def connect(node)
       @node = node
       # tftp 相关配置回调
-      @node.model.cfg['tftp'].each { |cb| instance_exec(&cb) }
-      @log  = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_tftp.log", 'w') if Oxidized.config.input.debug?
+      @node.model.cfg["tftp"].each { |cb| instance_exec(&cb) }
+      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_tftp.log", "w") if Oxidized.config.input.debug?
       @tftp = Net::TFTP.new @node.ip
     end
 

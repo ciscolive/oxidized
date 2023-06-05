@@ -1,25 +1,25 @@
 class CoriantTmos < Oxidized::Model
   using Refinements
 
-  comment '# '
+  comment "# "
 
-  prompt /^[^\s#]+#\s$/
+  prompt(/^[^\s#]+#\s$/)
 
-  cmd 'show node extensive' do |cfg|
+  cmd "show node extensive" do |cfg|
     comment cfg
   end
 
-  cmd 'show run' do |cfg|
+  cmd "show run" do |cfg|
     cfg
   end
 
   cfg :telnet do
-    username /^Login:\s$/
-    password /^Password:\s$/
+    username(/^Login:\s$/)
+    password(/^Password:\s$/)
   end
 
   cfg :telnet, :ssh do
-    pre_logout 'exit'
-    post_login 'enable config terminal length 0'
+    pre_logout "exit"
+    post_login "enable config terminal length 0"
   end
 end

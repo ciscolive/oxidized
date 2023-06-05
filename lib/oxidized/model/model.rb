@@ -1,5 +1,5 @@
-require 'strscan'
-require_relative 'outputs'
+require "strscan"
+require_relative "outputs"
 
 module Oxidized
   class Model
@@ -21,12 +21,12 @@ module Oxidized
         # Hash.new { |h, k| h[k] = [] } 可以提供动态创建默认值的功能，
         # 而 Hash.new 只能提供静态的默认值。使用具有块的Hash.new 可以更方便地处理需要默认值为数组等可变对象的情况。
         if klass.superclass == Oxidized::Model
-          klass.instance_variable_set '@cmd', (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set '@cfg', (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set '@procs', (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set '@expect', []
-          klass.instance_variable_set '@comment', nil
-          klass.instance_variable_set '@prompt', nil
+          klass.instance_variable_set :@cmd, (Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set :@cfg, (Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set :@procs, (Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set :@expect, []
+          klass.instance_variable_set :@comment, nil
+          klass.instance_variable_set :@prompt, nil
         else
           # we're subclassing some existing model, take its variables
           # 继承自其他子类模块
@@ -41,12 +41,12 @@ module Oxidized
       # 模块注释行
       def comment(str = "# ")
         @comment = if block_given?
-                     yield
-                   elsif not @comment
-                     str
-                   else
-                     @comment
-                   end
+          yield
+        elsif !@comment
+          str
+        else
+          @comment
+        end
       end
 
       # 设备登录提示符
@@ -54,7 +54,7 @@ module Oxidized
         @prompt = regex || @prompt
       end
 
-      # *methods 表示可变数量的方法名(符号)作为参数列表 -- 脚本容器
+      # *methods 表示可变长参数(比如设定 telnet ssh) -- 脚本容器
       # **args 表示关键字参数 -- 逻辑判断
       # &block 表示接收代码块 -- 交互逻辑
       def cfg(*methods, **args, &block)
@@ -75,7 +75,7 @@ module Oxidized
         if cmd_arg.instance_of?(Symbol)
           process_args_block(@cmd[cmd_arg], args, block)
         else
-          # 每个命令执行的代码块不一样，此处同时传递脚本和代码块
+          # 每个命令执行的代码块不一样，此处同时传递脚本、期望回显正则和代码块
           process_args_block(@cmd[:cmd], args, [cmd_arg, regex_re, block])
         end
         Oxidized.logger.debug "lib/oxidized/model/model.rb Added #{cmd_arg} to the commands list"
@@ -86,7 +86,7 @@ module Oxidized
         @cmd
       end
 
-      # 根据正则执行相关脚本
+      # 根据正则执行相关脚本 -- 存储正则和关联的代码块
       def expect(regex, **args, &block)
         process_args_block(@expect, args, [regex, block])
       end
@@ -158,21 +158,21 @@ module Oxidized
       # 实例对象执行脚本期间 -- 修饰逻辑
       # 将向代码块提供 |out, string| 参数
       self.class.cmds[:all].each do |all_block|
-        out = instance_exec out, string, &all_block
+        out = instance_exec(out, string, &all_block)
       end
 
       # 是否项目配置移除敏感信息属性
       # 将向代码块提供 |out, string| 参数
       if vars :remove_secret
         self.class.cmds[:secret].each do |all_block|
-          out = instance_exec out, string, &all_block
+          out = instance_exec(out, string, &all_block)
         end
       end
 
       # 动态加载代码块逻辑 |out| -> block
       # 将脚本执行回显作为输入提供到代码块
-      out = instance_exec out, &block if block
-      process_cmd_output out, string
+      out = instance_exec(out, &block) if block
+      process_cmd_output(out, string)
     end
 
     # 设备登录脚本输出
@@ -187,7 +187,7 @@ module Oxidized
 
     # 设定正则执行的代码块 -- 设置正则表达式和代码块到 对象 @expects
     def expect(regex, &block)
-      self.class.expect regex, &block
+      self.class.expect(regex, &block)
     end
 
     # 设备相关的配置
@@ -200,13 +200,12 @@ module Oxidized
       self.class.prompt
     end
 
-    # 根据正则执行相关的回调
+    # 根据回调函数的参数个数执行回调函数并将结果赋值给 data
+    # 同时传递脚本和正则表达式
     def expects(data)
       self.class.expects.each do |re, cb|
-        # 根据回调函数的参数个数执行回调函数并将结果赋值给 data
-        # 同时传递脚本和正则表达式
         if data.match re
-          data = cb.arity == 2 ? instance_exec([data, re], &cb) : instance_exec(data, &cb)
+          data = (cb.arity == 2) ? instance_exec([data, re], &cb) : instance_exec(data, &cb)
         end
       end
       data
@@ -214,14 +213,14 @@ module Oxidized
 
     # 获取设备运行配置
     def get
-      Oxidized.logger.debug 'lib/oxidized/model/model.rb Collecting commands\' outputs'
+      Oxidized.logger.debug "lib/oxidized/model/model.rb Collecting commands' outputs"
       # 实例化脚本输出 -- 数组
       outputs = Outputs.new
-      procs   = self.class.procs
+      procs = self.class.procs
 
       # 运行时脚本 -- 至上而下依次执行脚本
       self.class.cmds[:cmd].each do |command, regex_re, block|
-        out = cmd command, regex_re, &block
+        out = cmd(command, regex_re, &block)
         return false unless out
 
         outputs << out
@@ -229,12 +228,12 @@ module Oxidized
 
       # 前置脚本 -- 动态执行代码块
       procs[:pre].each do |pre_proc|
-        outputs.unshift process_cmd_output(instance_eval(&pre_proc), '')
+        outputs.unshift process_cmd_output(instance_eval(&pre_proc), "")
       end
 
       # 后置脚本 -- 动态执行代码块
       procs[:post].each do |post_proc|
-        outputs << process_cmd_output(instance_eval(&post_proc), '')
+        outputs << process_cmd_output(instance_eval(&post_proc), "")
       end
 
       outputs
@@ -242,7 +241,7 @@ module Oxidized
 
     # 为特定的字串输入注解符
     def comment(str)
-      data = ''
+      data = ""
       str.each_line do |line|
         data << self.class.comment << line
       end
@@ -261,9 +260,9 @@ module Oxidized
       # Also, XML Comments must not contain --. So we put a space between
       # any double hyphens, by replacing any - that is followed by another -
       # with '- '
-      data = ''
+      data = ""
       str.each_line do |_line|
-        data << '<!-- ' << str.gsub(/-(?=-)/, '- ').chomp << " -->\n"
+        data << "<!-- " << str.gsub(/-(?=-)/, "- ").chomp << " -->\n"
       end
       data
     end
@@ -276,7 +275,7 @@ module Oxidized
 
     # 设置脚本信息
     def process_cmd_output(output, command)
-      output = String.new('') unless output.instance_of?(String)
+      output = String.new("") unless output.instance_of?(String)
       output.set_cmd(command)
       output
     end

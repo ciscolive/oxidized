@@ -19,7 +19,7 @@ module Refinements
       each_line.to_a[lines..-1].join
     end
 
-    # 去除首位行
+    # 去除首尾行
     # head -- 首行开始
     # tail -- 尾部结束
     # @return [String] copy of self with first and last lines removed
@@ -32,15 +32,15 @@ module Refinements
     # sets @cmd and @name unless @name is already set
     def set_cmd(command)
       @cmd = command
-      @name ||= @cmd.to_s.strip.gsub(/\s+/, '_') # what to do when command is proc? #to_s seems ghetto
+      @name ||= @cmd.to_s.strip.gsub(/\s+/, "_") # what to do when command is proc? #to_s seems ghetto
     end
 
     # Initializes the String instance variables from another String instance
     # when the given str is an instance of String with Oxidized refinements applied
-    def init_from_string(str = '')
+    def init_from_string(str = "")
       raise TypeError unless str.instance_of?(String)
 
-      @cmd  = str.instance_variable_get(:@cmd)
+      @cmd = str.instance_variable_get(:@cmd)
       @name = str.instance_variable_get(:@name)
       @type = str.instance_variable_get(:@type)
     end

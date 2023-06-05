@@ -3,11 +3,11 @@ class AEN < Oxidized::Model
 
   # Accedian
 
-  comment '# '
+  comment "# "
 
-  prompt /^([-\w.\/:?\[\]()]+:\s?)$/
+  prompt(/^([-\w.\/:?\[\]()]+:\s?)$/)
 
-  cmd 'configuration generate-script module all' do |cfg|
+  cmd "configuration generate-script module all" do |cfg|
     cfg
   end
 
@@ -16,6 +16,6 @@ class AEN < Oxidized::Model
   end
 
   cfg :ssh do
-    pre_logout 'exit'
+    pre_logout "exit"
   end
 end

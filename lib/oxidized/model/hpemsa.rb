@@ -1,12 +1,12 @@
 class HpeMsa < Oxidized::Model
   using Refinements
 
-  prompt /^#\s?$/
+  prompt(/^#\s?$/)
 
-  cmd 'show configuration'
+  cmd "show configuration"
 
   cfg :ssh do
-    post_login 'set cli-parameters pager disabled'
-    pre_logout 'exit'
+    post_login "set cli-parameters pager disabled"
+    pre_logout "exit"
   end
 end

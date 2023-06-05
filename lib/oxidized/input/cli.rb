@@ -8,9 +8,9 @@ module Oxidized
       def initialize
         @post_login = []
         @pre_logout = []
-        @username   = nil
-        @password   = nil
-        @exec       = nil
+        @username = nil
+        @password = nil
+        @exec = nil
       end
 
       # 获取运行配置

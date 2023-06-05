@@ -3,7 +3,7 @@ class Mtrlrfs < Oxidized::Model
 
   # Motorola RFS/Extreme WM
 
-  comment '# '
+  comment "# "
 
   cmd :all do |cfg|
     # xos inserts leading \r characters and other trailing white space.
@@ -11,26 +11,26 @@ class Mtrlrfs < Oxidized::Model
     cfg.each_line.to_a[1..-2].map { |line| line.delete("\r").rstrip }.join("\n") + "\n"
   end
 
-  cmd 'show version' do |cfg|
+  cmd "show version" do |cfg|
     comment cfg
   end
 
-  cmd 'show licenses' do |cfg|
+  cmd "show licenses" do |cfg|
     comment cfg
   end
 
-  cmd 'show running-config'
+  cmd "show running-config"
 
   cfg :telnet do
-    username /^login:/
-    password /^\r*password:/
+    username(/^login:/)
+    password(/^\r*password:/)
   end
 
   cfg :telnet, :ssh do
-    post_login 'terminal length 0'
+    post_login "terminal length 0"
     pre_logout do
-      send "exit\n"
-      send "n\n"
+      send :"exit\n"
+      send :"n\n"
     end
   end
 end

@@ -4,22 +4,22 @@ class IPOS < Oxidized::Model
   # Ericsson SSR (IPOS)
   # Redback SE (SEOS)
 
-  prompt /^([\[\]\w.@-]+[#:>]\s?)$/
-  comment '! '
+  prompt(/^([\[\]\w.@-]+[#:>]\s?)$/)
+  comment "! "
 
-  cmd 'show chassis' do |cfg|
+  cmd "show chassis" do |cfg|
     comment cfg.cut_tail
   end
 
-  cmd 'show hardware' do |cfg|
+  cmd "show hardware" do |cfg|
     comment cfg.cut_tail
   end
 
-  cmd 'show release' do |cfg|
+  cmd "show release" do |cfg|
     comment cfg.cut_tail
   end
 
-  cmd 'show configuration' do |cfg|
+  cmd "show configuration" do |cfg|
     # SEOS regularly adds some odd line breaks in random places
     # when showing the config, triggering changes.
     cfg.gsub! "\r\n", "\n"
@@ -47,12 +47,12 @@ class IPOS < Oxidized::Model
   end
 
   cfg :telnet do
-    username /^login:/
-    password /^\r*password:/
+    username(/^login:/)
+    password(/^\r*password:/)
   end
 
   cfg :telnet, :ssh do
-    post_login 'terminal length 0'
+    post_login "terminal length 0"
     if vars :enable
       post_login do
         cmd "enable"
@@ -60,8 +60,8 @@ class IPOS < Oxidized::Model
       end
     end
     pre_logout do
-      send "exit\n"
-      send "n\n"
+      send :"exit\n"
+      send :"n\n"
     end
   end
 end

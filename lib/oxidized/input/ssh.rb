@@ -1,15 +1,15 @@
 module Oxidized
-  require 'net/ssh'
-  require 'net/ssh/proxy/command'
-  require 'timeout'
-  require 'oxidized/input/cli'
+  require "net/ssh"
+  require "net/ssh/proxy/command"
+  require "timeout"
+  require "oxidized/input/cli"
 
   class SSH < Input
     RescueFail = {
       debug: [
         Net::SSH::Disconnect
       ],
-      warn:  [
+      warn: [
         RuntimeError,
         Net::SSH::AuthenticationFailed
       ]
@@ -24,12 +24,12 @@ module Oxidized
     # 连接设备 -- 必须提供节点信息
     # 设置终端信息
     def connect(node)
-      @node        = node
-      @output      = ''
-      @pty_options = { term: "vt100" }
+      @node = node
+      @output = ""
+      @pty_options = {term: "vt100"}
       # SSH 会话相关配置 -- 比如设置登录权限账户等
-      @node.model.cfg['ssh'].each { |cb| instance_exec(&cb) }
-      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_ssh.log", 'w') if Oxidized.config.input.debug?
+      @node.model.cfg["ssh"].each { |cb| instance_exec(&cb) }
+      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_ssh.log", "w") if Oxidized.config.input.debug?
 
       # 实例化 ssh 对象并尝试登录设备
       Oxidized.logger.debug "lib/oxidized/input/ssh.rb: Connecting to #{@node.name}"
@@ -39,7 +39,7 @@ module Oxidized
         begin
           login
         rescue Timeout::Error
-          raise PromptUndetect, [@output, 'not matching configured prompt during login device', @node.prompt].join(' ')
+          raise PromptUndetect, [@output, "not matching configured prompt during login device", @node.prompt].join(" ")
         end
       end
       connected?
@@ -47,7 +47,7 @@ module Oxidized
 
     # 是否已经连接设备
     def connected?
-      @ssh && (not @ssh&.closed?)
+      @ssh && !@ssh&.closed?
     end
 
     # 通过 SSH 下发脚本，支持交互式逻辑
@@ -84,7 +84,13 @@ module Oxidized
       # Ignored
     ensure
       @log.close if Oxidized.config.input.debug?
-      (@ssh.close rescue true) unless @ssh.closed?
+      unless @ssh.closed?
+        begin
+          @ssh.close
+        rescue
+          true
+        end
+      end
     end
 
     # 新建 SSH 会话 -- channel
@@ -107,7 +113,7 @@ module Oxidized
         ch.request_pty(@pty_options) do |_ch, success_pty|
           raise NoShell, "Can't get PTY" unless success_pty
 
-          ch.send_channel_request 'shell' do |_ch, success_shell|
+          ch.send_channel_request "shell" do |_ch, success_shell|
             raise NoShell, "Can't get shell" unless success_shell
           end
         end
@@ -123,7 +129,7 @@ module Oxidized
 
     # 交互式执行脚本
     def cmd_shell(cmd, expect_re)
-      @output = ''
+      @output = ""
       @ses.send_data cmd + "\n"
       @ses.process
       expect expect_re if expect_re
@@ -150,32 +156,32 @@ module Oxidized
 
     # 生成 SSH 会话参数
     def make_ssh_opts
-      secure   = Oxidized.config.input.ssh.secure?
+      secure = Oxidized.config.input.ssh.secure?
       ssh_opts = {
-        number_of_password_prompts:      0,
-        keepalive:                       vars(:ssh_no_keepalive) ? false : true,
-        verify_host_key:                 secure ? :always : :never,
+        number_of_password_prompts: 0,
+        keepalive: vars(:ssh_no_keepalive) ? false : true,
+        verify_host_key: secure ? :always : :never,
         append_all_supported_algorithms: true,
-        password:                        @node.auth[:password],
-        timeout:                         Oxidized.config.timeout,
-        port:                            (vars(:ssh_port) || 22).to_i,
-        forward_agent:                   false
+        password: @node.auth[:password],
+        timeout: Oxidized.config.timeout,
+        port: (vars(:ssh_port) || 22).to_i,
+        forward_agent: false
       }
 
-      auth_methods            = vars(:auth_methods) || %w[none publickey password]
+      auth_methods = vars(:auth_methods) || %w[none publickey password]
       ssh_opts[:auth_methods] = auth_methods
       Oxidized.logger.debug "AUTH METHODS::#{auth_methods.inspect}"
 
-      ssh_opts[:proxy]      = make_ssh_proxy_command(vars(:ssh_proxy), vars(:ssh_proxy_port), secure) if vars(:ssh_proxy)
+      ssh_opts[:proxy] = make_ssh_proxy_command(vars(:ssh_proxy), vars(:ssh_proxy_port), secure) if vars(:ssh_proxy)
 
-      ssh_opts[:keys]       = [vars(:ssh_keys)].flatten if vars(:ssh_keys)
-      ssh_opts[:kex]        = vars(:ssh_kex).split(/,\s*/) if vars(:ssh_kex)
+      ssh_opts[:keys] = [vars(:ssh_keys)].flatten if vars(:ssh_keys)
+      ssh_opts[:kex] = vars(:ssh_kex).split(/,\s*/) if vars(:ssh_kex)
       ssh_opts[:encryption] = vars(:ssh_encryption).split(/,\s*/) if vars(:ssh_encryption)
-      ssh_opts[:host_key]   = vars(:ssh_host_key).split(/,\s*/) if vars(:ssh_host_key)
-      ssh_opts[:hmac]       = vars(:ssh_hmac).split(/,\s*/) if vars(:ssh_hmac)
+      ssh_opts[:host_key] = vars(:ssh_host_key).split(/,\s*/) if vars(:ssh_host_key)
+      ssh_opts[:hmac] = vars(:ssh_hmac).split(/,\s*/) if vars(:ssh_hmac)
 
       if Oxidized.config.input.debug?
-        ssh_opts[:logger]  = Oxidized.logger
+        ssh_opts[:logger] = Oxidized.logger
         ssh_opts[:verbose] = Logger::DEBUG
       end
 

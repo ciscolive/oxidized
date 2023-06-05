@@ -1,8 +1,8 @@
-require 'simplecov'
-require 'simplecov-cobertura'
+require "simplecov"
+require "simplecov-cobertura"
 
 SimpleCov.start do
-  if ENV['CI']
+  if ENV["CI"]
     formatter SimpleCov::Formatter::CoberturaFormatter
   else
     formatter SimpleCov::Formatter::MultiFormatter.new(
@@ -14,9 +14,9 @@ SimpleCov.start do
   end
 end
 
-require 'minitest/autorun'
-require 'mocha/minitest'
-require 'oxidized'
+require "minitest/autorun"
+require "mocha/minitest"
+require "oxidized"
 
 Oxidized.mgr = Oxidized::Manager.new
 

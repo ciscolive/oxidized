@@ -3,25 +3,25 @@ class ACMEPACKET < Oxidized::Model
 
   # Oracle ACME Packet 3k, 4k, 6k series
 
-  prompt /^\r*([\w.@()-\/]+[#>]\s?)$/
+  prompt(/^\r*([\w.@()-\/]+[#>]\s?)$/)
 
-  comment '! '
+  comment "! "
 
   cmd :all do |cfg, cmdstring|
     new_cfg = comment "COMMAND: #{cmdstring}\n"
     new_cfg << cfg.cut_both
   end
 
-  cmd 'show version' do |cfg|
+  cmd "show version" do |cfg|
     comment cfg
   end
 
-  cmd 'show running-config' do |cfg|
+  cmd "show running-config" do |cfg|
     cfg
   end
 
   cfg :telnet do
-    password /^Password:/i
+    password(/^Password:/i)
   end
 
   cfg :telnet, :ssh do
@@ -34,7 +34,7 @@ class ACMEPACKET < Oxidized::Model
         cmd vars(:enable)
       end
     end
-    pre_logout 'exit'
-    pre_logout 'exit'
+    pre_logout "exit"
+    pre_logout "exit"
   end
 end

@@ -1,14 +1,14 @@
 module Oxidized
-  require 'net/ftp'
-  require 'timeout'
-  require_relative 'cli'
+  require "net/ftp"
+  require "timeout"
+  require_relative "cli"
 
   class FTP < Input
     RescueFail = {
       debug: [
         # Net::SSH::Disconnect,
       ],
-      warn:  [
+      warn: [
         # RuntimeError,
         # Net::SSH::AuthenticationFailed,
       ]
@@ -17,16 +17,16 @@ module Oxidized
 
     def connect(node)
       @node = node
-      @node.model.cfg['ftp'].each { |cb| instance_exec(&cb) }
-      @log         = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_ftp.log", 'w') if Oxidized.config.input.debug?
-      @ftp         = Net::FTP.new(@node.ip)
+      @node.model.cfg["ftp"].each { |cb| instance_exec(&cb) }
+      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_ftp.log", "w") if Oxidized.config.input.debug?
+      @ftp = Net::FTP.new(@node.ip)
       @ftp.passive = Oxidized.config.input.ftp.passive
       @ftp.login @node.auth[:username], @node.auth[:password]
       connected?
     end
 
     def connected?
-      @ftp && (not @ftp.closed?)
+      @ftp && !@ftp.closed?
     end
 
     def cmd(file)

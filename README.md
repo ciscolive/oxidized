@@ -163,7 +163,7 @@ pkg install rubygem-oxidized rubygem-oxidized-script rubygem-oxidized-web
 ### Build from Git
 
 ```shell
-git clone https://github.com/ytti/oxidized.git
+git clone https://github.com/ciscolive/oxidized.git
 cd oxidized/
 gem install bundler
 rake install
