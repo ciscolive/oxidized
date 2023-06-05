@@ -54,11 +54,11 @@ module Oxidized
     # 生成 JSON 数据
     def generate_json(node, outputs, opt)
       JSON.pretty_generate(
-        "msg" => opt[:msg],
-        "user" => opt[:user],
-        "email" => opt[:email],
-        "group" => opt[:group],
-        "node" => node,
+        "msg"    => opt[:msg],
+        "user"   => opt[:user],
+        "email"  => opt[:email],
+        "group"  => opt[:group],
+        "node"   => node,
         "config" => outputs.to_cfg
         # actually we need to also iterate outputs, for other types like in gitlab. But most people don't use 'type' functionality.
       )

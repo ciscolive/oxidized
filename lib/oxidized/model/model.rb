@@ -41,12 +41,12 @@ module Oxidized
       # 模块注释行
       def comment(str = "# ")
         @comment = if block_given?
-          yield
-        elsif !@comment
-          str
-        else
-          @comment
-        end
+                     yield
+                   elsif !@comment
+                     str
+                   else
+                     @comment
+                   end
       end
 
       # 设备登录提示符
@@ -205,7 +205,7 @@ module Oxidized
     def expects(data)
       self.class.expects.each do |re, cb|
         if data.match re
-          data = (cb.arity == 2) ? instance_exec([data, re], &cb) : instance_exec(data, &cb)
+          data = cb.arity == 2 ? instance_exec([data, re], &cb) : instance_exec(data, &cb)
         end
       end
       data

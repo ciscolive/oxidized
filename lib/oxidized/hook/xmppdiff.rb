@@ -10,7 +10,7 @@ class XMPPDiff < Oxidized::Hook
       Timeout.timeout(15) do
         begin
           @client.connect
-        rescue => e
+        rescue StandardError => e
           log "Failed to connect to XMPP: #{e}"
         end
         sleep 1

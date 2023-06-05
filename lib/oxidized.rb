@@ -46,16 +46,16 @@ module Oxidized
       FileUtils.mkdir_p(Config::LOG_DIR) unless File.directory?(Config::LOG_DIR)
 
       self.logger = if config.has_key?("use_syslog") && config.use_syslog
-        require "syslog/logger"
-        Syslog::Logger.new("oxidized")
-      else
-        require "logger"
-        if config.has_key?("log")
-          Logger.new(File.expand_path(config.log))
-        else
-          Logger.new(STDERR)
-        end
-      end
+                      require "syslog/logger"
+                      Syslog::Logger.new("oxidized")
+                    else
+                      require "logger"
+                      if config.has_key?("log")
+                        Logger.new(File.expand_path(config.log))
+                      else
+                        Logger.new(STDERR)
+                      end
+                    end
 
       # 如果项目配置 debug 模式，自动设置日志级别为 info
       logger.level = Logger::INFO unless config.debug

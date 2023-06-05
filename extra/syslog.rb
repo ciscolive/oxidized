@@ -39,12 +39,12 @@ module Oxidized
   CFGS.default.syslogd.resolve = true
   CFGS.default.syslogd.dns_map = {
     '(.*)\.strip\.this\.domain\.com' => '\\1',
-    '(.*)\.also\.this\.net' => '\\1'
+    '(.*)\.also\.this\.net'          => '\\1'
   }
 
   begin
     CFGS.load
-  rescue => error
+  rescue StandardError => error
     raise InvalidConfig, "Error loading config: #{error.message}"
   ensure
     CFG = CFGS.cfg # convenienence, instead of Config.cfg.password, CFG.password
@@ -52,10 +52,10 @@ module Oxidized
 
   class SyslogMonitor
     MSG = {
-      ios: /%SYS-(SW[0-9]+-)?5-CONFIG_I:/,
+      ios:   /%SYS-(SW[0-9]+-)?5-CONFIG_I:/,
       junos: "UI_COMMIT:",
-      eos: /%SYS-5-CONFIG_I:/,
-      nxos: /%VSHD-5-VSHD_SYSLOG_CONFIG_I:/,
+      eos:   /%SYS-5-CONFIG_I:/,
+      nxos:  /%VSHD-5-VSHD_SYSLOG_CONFIG_I:/,
       aruba: "Notice-Type='Running"
     }.freeze
 
@@ -91,8 +91,8 @@ module Oxidized
       opts
     end
 
-    alias_method :nxos, :ios
-    alias_method :eos, :ios
+    alias nxos ios
+    alias eos ios
 
     def junos(log, index, **opts)
       # TODO: we need to fetch 'ip/name' in mode == :file here
@@ -140,7 +140,7 @@ module Oxidized
       else
         name = begin
           Resolv.getname ipaddr.to_s
-        rescue
+        rescue StandardError
           ipaddr
         end
         Oxidized::CFG.syslogd.dns_map.each { |re, sub| name.sub! Regexp.new(re.to_s), sub }

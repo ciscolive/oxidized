@@ -65,7 +65,7 @@ module Oxidized
       index = repo.index
       index.read_tree repo.head.target.tree unless repo.empty?
       repo.read(index.get(path)[:oid]).data
-    rescue
+    rescue StandardError
       "node not found"
     end
 
@@ -92,7 +92,7 @@ module Oxidized
       end
       walker.reset
       tab
-    rescue
+    rescue StandardError
       "node not found"
     end
 
@@ -101,7 +101,7 @@ module Oxidized
       repo, path = yield_repo_and_path(node, group)
       repo = Rugged::Repository.new repo
       repo.blob_at(oid, path).content
-    rescue
+    rescue StandardError
       "version not found"
     end
 
@@ -117,7 +117,7 @@ module Oxidized
         diff = repo.diff(commit_old, commit)
         diff.each do |patch|
           if /#{node.name}\s+/.match?(patch.to_s.lines.first)
-            diff_commits = {patch: patch.to_s, stat: patch.stat}
+            diff_commits = { patch: patch.to_s, stat: patch.stat }
             break
           end
         end
@@ -125,11 +125,11 @@ module Oxidized
         stat = commit.parents[0].diff(commit).stat
         stat = [stat[1], stat[2]]
         patch = commit.parents[0].diff(commit).patch
-        diff_commits = {patch: patch, stat: stat}
+        diff_commits = { patch: patch, stat: stat }
       end
 
       diff_commits
-    rescue
+    rescue StandardError
       "no diffs"
     end
 
@@ -151,10 +151,10 @@ module Oxidized
           file = File.join @opt[:group], file
         else
           repo = if repo.is_a?(::String)
-            File.join File.dirname(repo), @opt[:group] + ".git"
-          else
-            repo[@opt[:group]]
-          end
+                   File.join File.dirname(repo), @opt[:group] + ".git"
+                 else
+                   repo[@opt[:group]]
+                 end
         end
       end
 
@@ -164,7 +164,7 @@ module Oxidized
       rescue Rugged::OSError, Rugged::RepositoryError => e
         begin
           Rugged::Repository.init_at repo, :bare
-        rescue => create_error
+        rescue StandardError => create_error
           raise GitError, "first '#{e.message}' was raised while opening git repo, then '#{create_error.message}' was while trying to create git repo"
         end
         retry
@@ -174,7 +174,7 @@ module Oxidized
     def update_repo(repo, file, data)
       oid_old = begin
         repo.blob_at(repo.head.target_id, file)
-      rescue
+      rescue StandardError
         nil
       end
       return false if oid_old && (oid_old.content.b == data.b)
@@ -186,10 +186,10 @@ module Oxidized
       repo.config["user.name"] = @user
       repo.config["user.email"] = @email
       @commitref = Rugged::Commit.create(repo,
-        tree: index.write_tree(repo),
-        message: @msg,
-        parents: repo.empty? ? [] : [repo.head.target].compact,
-        update_ref: "HEAD")
+                                         tree:       index.write_tree(repo),
+                                         message:    @msg,
+                                         parents:    repo.empty? ? [] : [repo.head.target].compact,
+                                         update_ref: "HEAD")
 
       index.write
       true

@@ -40,7 +40,7 @@ module Oxidized
     # 节点备份状态钩子函数 -- 备份成功、备份失败、备份完成和数据转储成功
     def register(event, name, hook_type, cfg)
       # 仅支持名单内事件
-      raise ArgumentError, "unknown event #{event}, available: #{Events.join(",")}" unless Events.include? event
+      raise ArgumentError, "unknown event #{event}, available: #{Events.join(',')}" unless Events.include? event
 
       # 动态加载钩子模块，如加载异常则抛出异常
       Oxidized.mgr.add_hook(hook_type) || raise("cannot load hook '#{hook_type}', not found")
@@ -64,7 +64,7 @@ module Oxidized
 
       @registered_hooks[event].each do |r_hook|
         r_hook.hook.run_hook(ctx)
-      rescue => e
+      rescue StandardError => e
         Oxidized.logger.error "Hook #{r_hook.name} (#{r_hook.hook}) failed " \
                               "(#{e.inspect}) for event #{event.inspect}"
       end

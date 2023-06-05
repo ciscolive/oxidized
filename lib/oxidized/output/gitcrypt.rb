@@ -98,7 +98,7 @@ module Oxidized
 
       File.read path
       lock repo
-    rescue
+    rescue StandardError
       "node not found"
     end
 
@@ -121,7 +121,7 @@ module Oxidized
       end
       walker.reset
       tab
-    rescue
+    rescue StandardError
       "node not found"
     end
 
@@ -131,7 +131,7 @@ module Oxidized
       repo = Git.open repo
       unlock repo
       repo.gtree(oid).files[path].contents
-    rescue
+    rescue StandardError
       "version not found"
     ensure
       lock repo
@@ -151,7 +151,7 @@ module Oxidized
         stats = [diff.stats[:files][node.name][:insertions], diff.stats[:files][node.name][:deletions]]
         diff.each do |patch|
           if /#{node.name}\s+/.match?(patch.patch.to_s.lines.first)
-            diff_commits = {patch: patch.patch.to_s, stat: stats}
+            diff_commits = { patch: patch.patch.to_s, stat: stats }
             break
           end
         end
@@ -159,11 +159,11 @@ module Oxidized
         stat = commit.parents[0].diff(commit).stats
         stat = [stat[:files][node.name][:insertions], stat[:files][node.name][:deletions]]
         patch = commit.parents[0].diff(commit).patch
-        diff_commits = {patch: patch, stat: stat}
+        diff_commits = { patch: patch, stat: stat }
       end
       lock repo
       diff_commits
-    rescue
+    rescue StandardError
       "no diffs"
     ensure
       lock repo
@@ -187,10 +187,10 @@ module Oxidized
           file = File.join @opt[:group], file
         else
           repo = if repo.is_a?(::String)
-            File.join File.dirname(repo), @opt[:group] + ".git"
-          else
-            repo[@opt[:group]]
-          end
+                   File.join File.dirname(repo), @opt[:group] + ".git"
+                 else
+                   repo[@opt[:group]]
+                 end
         end
       end
 
@@ -201,7 +201,7 @@ module Oxidized
         begin
           grepo = Git.init repo
           crypt_init grepo
-        rescue => create_error
+        rescue StandardError => create_error
           raise GitCryptError, "first '#{e.message}' was raised while opening git repo, then '#{create_error.message}' was while trying to create git repo"
         end
         retry

@@ -14,7 +14,7 @@ module Oxidized
       Oxidized.logger.debug "EXEC: #{cmd_str} @ #{@node.name}"
       # I'd really like to do popen3 with separate arguments, but that would
       # require refactoring cmd to take parameters
-      `#{cmd_str}`
+      %x(#{cmd_str})
     end
 
     private

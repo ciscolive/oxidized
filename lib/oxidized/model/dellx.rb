@@ -64,7 +64,7 @@ class DellX < Oxidized::Model
       end
       # If we have lines to skip do this until we reach and empty line
       if skip_blocks.positive?
-        skip_blocks -= 1 if !/\S/.match?(line)
+        skip_blocks -= 1 unless /\S/.match?(line)
         next
       end
       out << line.strip

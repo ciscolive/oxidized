@@ -37,17 +37,17 @@ class SlackDiff < Oxidized::Hook
 
         # 上传相关差异文件
         client.files_upload(channels: cfg.channel, as_user: true,
-          content:  diff[:patch].lines.to_a[4..-1].join,
-          filetype: "diff",
-          title:    title,
-          filename: "change")
+                            content:  diff[:patch].lines.to_a[4..-1].join,
+                            filetype: "diff",
+                            title:    title,
+                            filename: "change")
       end
     end
     # message custom formatted - optional
     if cfg.message?
       # 打印日志
       log cfg.message
-      msg = cfg.message % {node: ctx.node.name.to_s, group: ctx.node.group.to_s, commitref: ctx.commitref, model: ctx.node.model.class.name.to_s.downcase}
+      msg = cfg.message % { node: ctx.node.name.to_s, group: ctx.node.group.to_s, commitref: ctx.commitref, model: ctx.node.model.class.name.to_s.downcase }
       log msg
       log "Posting message to #{cfg.channel}"
       client.chat_postMessage(channel: cfg.channel, text: msg, as_user: true)

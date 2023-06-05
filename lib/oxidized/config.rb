@@ -60,18 +60,18 @@ module Oxidized
       asetus.default.source.default = "csv" # csv, sql, http
 
       asetus.default.model_map = {
-        "juniper" => "junos",
-        "cisco" => "ios",
-        "PANOS" => "panos",
-        "Comware" => "h3c",
+        "juniper"   => "junos",
+        "cisco"     => "ios",
+        "PANOS"     => "panos",
+        "Comware"   => "h3c",
         "Hillstone" => "stoneos",
-        "Radware" => "alteonos",
-        "ros" => "ios"
+        "Radware"   => "alteonos",
+        "ros"       => "ios"
       }
 
       begin
         asetus.load # load system+user configs, merge to Config.cfg
-      rescue => error
+      rescue StandardError => error
         raise InvalidConfig, "Error loading config: #{error.message}"
       end
 

@@ -68,7 +68,7 @@ module Oxidized
     def process_success(node, job)
       @jobs_done += 1 # needed for :nodes_done hook
       Oxidized.hooks.handle :node_success, node: node,
-        job:  job
+                                           job:  job
       # 设定节点备份成功消息
       msg = "update #{node.group}/#{node.name}"
       msg += " from #{node.from}" if node.from
@@ -81,8 +81,8 @@ module Oxidized
         node.modified
         Oxidized.logger.info "Configuration updated for #{node.group}/#{node.name}"
         Oxidized.hooks.handle :post_store, node:      node,
-          job:       job,
-          commitref: output.commitref
+                                           job:       job,
+                                           commitref: output.commitref
       end
       node.reset
     end
@@ -122,7 +122,7 @@ module Oxidized
     def run_done_hook
       Oxidized.logger.debug "lib/oxidized/worker.rb: Running :nodes_done hook"
       Oxidized.hooks.handle(:nodes_done)
-    rescue => e
+    rescue StandardError => e
       # swallow the hook errors and continue as normal
       Oxidized.logger.error "lib/oxidized/worker.rb: #{e.message}"
     ensure

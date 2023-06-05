@@ -4,13 +4,13 @@ module Oxidized
 
   def self.version_set
     version_full = begin
-      `git describe --tags`.chop
-    rescue
+      %x(git describe --tags).chop
+    rescue StandardError
       ""
     end
     version = begin
-      `git describe --tags --abbrev=0`.chop
-    rescue
+      %x(git describe --tags --abbrev=0).chop
+    rescue StandardError
       ""
     end
 

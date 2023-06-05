@@ -9,7 +9,7 @@ module Oxidized
       debug: [
         Net::SSH::Disconnect
       ],
-      warn: [
+      warn:  [
         RuntimeError,
         Net::SSH::AuthenticationFailed
       ]
@@ -26,7 +26,7 @@ module Oxidized
     def connect(node)
       @node = node
       @output = ""
-      @pty_options = {term: "vt100"}
+      @pty_options = { term: "vt100" }
       # SSH 会话相关配置 -- 比如设置登录权限账户等
       @node.model.cfg["ssh"].each { |cb| instance_exec(&cb) }
       @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_ssh.log", "w") if Oxidized.config.input.debug?
@@ -87,7 +87,7 @@ module Oxidized
       unless @ssh.closed?
         begin
           @ssh.close
-        rescue
+        rescue StandardError
           true
         end
       end
@@ -158,14 +158,14 @@ module Oxidized
     def make_ssh_opts
       secure = Oxidized.config.input.ssh.secure?
       ssh_opts = {
-        number_of_password_prompts: 0,
-        keepalive: vars(:ssh_no_keepalive) ? false : true,
-        verify_host_key: secure ? :always : :never,
+        number_of_password_prompts:      0,
+        keepalive:                       vars(:ssh_no_keepalive) ? false : true,
+        verify_host_key:                 secure ? :always : :never,
         append_all_supported_algorithms: true,
-        password: @node.auth[:password],
-        timeout: Oxidized.config.timeout,
-        port: (vars(:ssh_port) || 22).to_i,
-        forward_agent: false
+        password:                        @node.auth[:password],
+        timeout:                         Oxidized.config.timeout,
+        port:                            (vars(:ssh_port) || 22).to_i,
+        forward_agent:                   false
       }
 
       auth_methods = vars(:auth_methods) || %w[none publickey password]

@@ -14,7 +14,7 @@ module Oxidized
     # 实例对象 -- 可读写属性
     attr_accessor :running, :user, :email, :msg, :from, :stats, :retry, :err_type, :err_reason
     # 节点别名
-    alias_method :running?, :running
+    alias running? running
 
     # 实例化函数
     def initialize(opt)
@@ -26,7 +26,7 @@ module Oxidized
       @name = opt[:name]
       @ip = begin
         IPAddr.new(ip_addr).to_s
-      rescue
+      rescue StandardError
         nil
       end
       @ip ||= Resolv.new.getaddress(@name) if Oxidized.config.resolve_dns?
@@ -102,7 +102,7 @@ module Oxidized
         @err_type = err.class.to_s
         @err_reason = err.message.to_s
         false
-      rescue => err
+      rescue StandardError => err
         crash_dir = Oxidized.config.crash.directory
         crash_file = Oxidized.config.crash.hostnames? ? name : ip.to_s
         FileUtils.mkdir_p(crash_dir) unless File.directory?(crash_dir)
@@ -124,23 +124,23 @@ module Oxidized
     # 节点序列化函数
     def serialize
       h = {
-        name: @name,
+        name:      @name,
         full_name: @name,
-        ip: @ip,
-        group: @group,
-        model: @model.class.to_s,
-        last: nil,
-        vars: @vars,
-        mtime: @stats.mtime
+        ip:        @ip,
+        group:     @group,
+        model:     @model.class.to_s,
+        last:      nil,
+        vars:      @vars,
+        mtime:     @stats.mtime
       }
       # 修正数据
       h[:full_name] = [@group, @name].join("/") if @group
       if @last
         h[:last] = {
-          start: @last.start,
-          end: @last.end,
+          start:  @last.start,
+          end:    @last.end,
           status: @last.status,
-          time: @last.time
+          time:   @last.time
         }
       end
       h

@@ -53,10 +53,10 @@ class GithubRepo < Oxidized::Hook
     end
 
     Rugged::Commit.create(repo,
-      parents: [repo.head.target, their_branch.target],
-      tree: merge_index.write_tree(repo),
-      message: "Merge remote-tracking branch '#{their_branch.name}'",
-      update_ref: "HEAD")
+                          parents:    [repo.head.target, their_branch.target],
+                          tree:       merge_index.write_tree(repo),
+                          message:    "Merge remote-tracking branch '#{their_branch.name}'",
+                          update_ref: "HEAD")
   end
 
   private
@@ -89,9 +89,9 @@ class GithubRepo < Oxidized::Hook
     privkey = args[:privkey]
     pubkey = args[:pubkey] || (privkey + ".pub")
     Rugged::Credentials::SshKey.new(username:   git_user,
-      publickey:  File.expand_path(pubkey),
-      privatekey: File.expand_path(privkey),
-      passphrase: ENV.fetch("OXIDIZED_SSH_PASSPHRASE", nil))
+                                    publickey:  File.expand_path(pubkey),
+                                    privatekey: File.expand_path(privkey),
+                                    passphrase: ENV.fetch("OXIDIZED_SSH_PASSPHRASE", nil))
   end
 
   # 定义远程仓库地址

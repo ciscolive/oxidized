@@ -10,7 +10,7 @@ module Oxidized
   class Nodes < Array
     # 实例属性
     attr_accessor :source, :jobs
-    alias_method :put, :unshift
+    alias put unshift
 
     def load(node_want = nil)
       with_lock do
@@ -46,12 +46,12 @@ module Oxidized
 
       node_want_ip = begin
         IPAddr.new(node_want)
-      rescue
+      rescue StandardError
         false
       end
       name_is_ip = begin
         IPAddr.new(node[:name])
-      rescue
+      rescue StandardError
         false
       end
       # rubocop:todo Lint/DuplicateBranch
@@ -106,7 +106,7 @@ module Oxidized
       end
     end
 
-    alias_method :top, :next
+    alias top next
 
     # 先进先出 -- 提取队列头部数据
     # @return [String] node from the head of the array

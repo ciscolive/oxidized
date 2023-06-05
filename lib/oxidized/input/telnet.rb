@@ -18,11 +18,11 @@ module Oxidized
 
       # 相关参数
       telnet_opts = {
-        "Host" => @node.ip,
-        "Port" => port.to_i,
+        "Host"    => @node.ip,
+        "Port"    => port.to_i,
         "Timeout" => @timeout,
-        "Model" => @node.model,
-        "Log" => @log
+        "Model"   => @node.model,
+        "Log"     => @log
       }
 
       @telnet = Net::Telnet.new telnet_opts
@@ -80,7 +80,7 @@ module Oxidized
       unless @telnet.sock.closed?
         begin
           @telnet.close
-        rescue
+        rescue StandardError
           true
         end
       end
@@ -111,7 +111,7 @@ module Net
           c = rest + c
 
           if Integer(c.rindex(/#{IAC}#{SE}/no) || 0) <
-              Integer(c.rindex(/#{IAC}#{SB}/no) || 0)
+             Integer(c.rindex(/#{IAC}#{SB}/no) || 0)
             buf = preprocess(c[0...c.rindex(/#{IAC}#{SB}/no)])
             rest = c[c.rindex(/#{IAC}#{SB}/no)..-1]
           elsif (pt = c.rindex(/#{IAC}[^#{IAC}#{AO}#{AYT}#{DM}#{IP}#{NOP}]?\z/no) ||

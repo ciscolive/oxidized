@@ -23,7 +23,7 @@ describe GithubRepo do
     end
 
     it "raise a error when `remote_repo` is not configured" do
-      Oxidized.config.hooks.github_repo_hook = {type: "githubrepo"}
+      Oxidized.config.hooks.github_repo_hook = { type: "githubrepo" }
       gr.cfg = Oxidized.config.hooks.github_repo_hook
       _ { gr.validate_cfg! }.must_raise(KeyError)
     end
@@ -71,10 +71,10 @@ describe GithubRepo do
         merge_index.expects(:write_tree).with(repo).returns("tree")
         merge_index.expects(:conflicts?).returns(false)
         Rugged::Commit.expects(:create).with(repo,
-          parents: %w[our_target their_target],
-          tree: "tree",
-          message: "Merge remote-tracking branch 'origin/master'",
-          update_ref: "HEAD").returns(1)
+                                             parents:    %w[our_target their_target],
+                                             tree:       "tree",
+                                             message:    "Merge remote-tracking branch 'origin/master'",
+                                             update_ref: "HEAD").returns(1)
         _(gr.fetch_and_merge_remote(repo, credentials)).must_equal 1
       end
     end

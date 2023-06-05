@@ -45,7 +45,7 @@ module Oxidized
 
     # 请求 http 接口
     def cmd_str(string)
-      path = string % {password: @node.auth[:password]}
+      path = string % { password: @node.auth[:password] }
       get_http path
     end
 

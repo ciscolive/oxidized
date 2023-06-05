@@ -24,7 +24,7 @@ module Oxidized
         i&.setup if i.respond_to? :setup
 
         # 用于 merge 数据
-        {file => klass}
+        { file => klass }
       rescue LoadError
         false
       end

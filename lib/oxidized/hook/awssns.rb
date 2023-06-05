@@ -18,7 +18,7 @@ class AwsSns < Oxidized::Hook
       message.merge!(
         group: ctx.node.group.to_s,
         model: ctx.node.model.class.name.to_s.downcase,
-        node: ctx.node.name.to_s
+        node:  ctx.node.name.to_s
       )
     end
     topic.publish(message: message.to_json)

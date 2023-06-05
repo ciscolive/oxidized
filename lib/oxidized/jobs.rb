@@ -44,10 +44,10 @@ module Oxidized
     # 自动设置线程数：(节点数*平均超时时间)/单节点运行周期
     def new_count
       @want = if @use_max_threads
-        @max
-      else
-        ((@nodes.size * @duration) / @interval).ceil
-      end
+                @max
+              else
+                ((@nodes.size * @duration) / @interval).ceil
+              end
       @want = 1 if @want < 1
       @want = @nodes.size if @want > @nodes.size
       @want = @max if @want > @max

@@ -8,7 +8,7 @@ module Oxidized
       debug: [
         # Net::SSH::Disconnect,
       ],
-      warn: [
+      warn:  [
         # RuntimeError,
         # Net::SSH::AuthenticationFailed,
       ]
