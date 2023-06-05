@@ -40,7 +40,7 @@ module Refinements
     def init_from_string(str = "")
       raise TypeError unless str.instance_of?(String)
 
-      @cmd = str.instance_variable_get(:@cmd)
+      @cmd  = str.instance_variable_get(:@cmd)
       @name = str.instance_variable_get(:@name)
       @type = str.instance_variable_get(:@type)
     end

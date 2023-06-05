@@ -29,13 +29,13 @@ class XMPPDiff < Oxidized::Hook
     rescue Timeout::Error
       log "timed out"
       @client = nil
-      @muc = nil
+      @muc    = nil
     end
 
     @client.on_exception do
       log "XMPP connection aborted, reconnecting"
       @client = nil
-      @muc = nil
+      @muc    = nil
       connect
     end
   end
@@ -54,7 +54,7 @@ class XMPPDiff < Oxidized::Hook
     begin
       Timeout.timeout(15) do
         git_output = ctx.node.output.new
-        diff = git_output.get_diff ctx.node, ctx.node.group, ctx.commitref, nil
+        diff       = git_output.get_diff ctx.node, ctx.node.group, ctx.commitref, nil
 
         interesting = diff[:patch].lines.to_a[4..-1].any? do |line|
           ["+", "-"].include?(line[0]) && !["#", "!"].include?(line[1])

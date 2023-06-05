@@ -11,10 +11,10 @@ module Oxidized
     def setup
       return unless @cfg.empty?
 
-      Oxidized.asetus.user.source.sql.adapter = "sqlite"
-      Oxidized.asetus.user.source.sql.database = File.join(Config::ROOT_DIR, "sqlite.db")
-      Oxidized.asetus.user.source.sql.table = "devices"
-      Oxidized.asetus.user.source.sql.map.name = "name"
+      Oxidized.asetus.user.source.sql.adapter   = "sqlite"
+      Oxidized.asetus.user.source.sql.database  = File.join(Config::ROOT_DIR, "sqlite.db")
+      Oxidized.asetus.user.source.sql.table     = "devices"
+      Oxidized.asetus.user.source.sql.map.name  = "name"
       Oxidized.asetus.user.source.sql.map.model = "rancid"
       Oxidized.asetus.save :user
       raise NoConfig, "no source sql config, edit ~/.config/oxidized/config"
@@ -25,7 +25,7 @@ module Oxidized
       nodes = []
 
       # 连接数据库并查询清单
-      db = connect
+      db    = connect
       query = db[@cfg.table.to_sym]
       query = query.with_sql(@cfg.query) if @cfg.query?
       # 过滤特定节点信息

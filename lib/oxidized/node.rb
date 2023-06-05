@@ -23,27 +23,27 @@ module Oxidized
       ip_addr, = opt[:ip].to_s.split("/")
       Oxidized.logger.debug "IPADDR %s" % ip_addr.to_s
       # 设定节点名称和IP地址
-      @name = opt[:name]
-      @ip = begin
+      @name  = opt[:name]
+      @ip    = begin
         IPAddr.new(ip_addr).to_s
       rescue StandardError
         nil
       end
-      @ip ||= Resolv.new.getaddress(@name) if Oxidized.config.resolve_dns?
-      @ip ||= @name
+      @ip    ||= Resolv.new.getaddress(@name) if Oxidized.config.resolve_dns?
+      @ip    ||= @name
       @group = opt[:group]
       # 动态解析节点相关的模型、输入、输出和认证等信息
-      @model = resolve_model(opt)
-      @input = resolve_input(opt)
+      @model  = resolve_model(opt)
+      @input  = resolve_input(opt)
       @output = resolve_output(opt)
-      @auth = resolve_auth(opt)
+      @auth   = resolve_auth(opt)
       @prompt = resolve_prompt(opt)
       # 节点本身相关变量
-      @vars = opt[:vars]
-      @stats = Stats.new
-      @retry = 0
-      @repo = resolve_repo(opt)
-      @err_type = nil
+      @vars       = opt[:vars]
+      @stats      = Stats.new
+      @retry      = 0
+      @repo       = resolve_repo(opt)
+      @err_type   = nil
       @err_reason = nil
       # model instance needs to access node instance
       @model.node = self
@@ -94,16 +94,16 @@ module Oxidized
       rescue *rescue_fail.keys => err
         ctx = ""
         unless (level = rescue_fail[err.class])
-          ctx = err.class.ancestors.find { |e| rescue_fail.has_key?(e) }
+          ctx   = err.class.ancestors.find { |e| rescue_fail.has_key?(e) }
           level = rescue_fail[ctx]
-          ctx = " (rescued #{ctx})"
+          ctx   = " (rescued #{ctx})"
         end
         Oxidized.logger.send(level, '%s raised %s%s with msg "%s"' % [ip, err.class, ctx, err.message])
-        @err_type = err.class.to_s
+        @err_type   = err.class.to_s
         @err_reason = err.message.to_s
         false
       rescue StandardError => err
-        crash_dir = Oxidized.config.crash.directory
+        crash_dir  = Oxidized.config.crash.directory
         crash_file = Oxidized.config.crash.hostnames? ? name : ip.to_s
         FileUtils.mkdir_p(crash_dir) unless File.directory?(crash_dir)
 
@@ -115,7 +115,7 @@ module Oxidized
           fh.puts err.backtrace
         end
         Oxidized.logger.error '%s raised %s with msg "%s", %s saved' % [ip, err.class, err.message, crash_file]
-        @err_type = err.class.to_s
+        @err_type   = err.class.to_s
         @err_reason = err.message.to_s
         false
       end
@@ -149,12 +149,12 @@ module Oxidized
     # 节点运行快照
     def last=(job)
       if job
-        ostruct = OpenStruct.new
-        ostruct.start = job.start
-        ostruct.end = job.end
+        ostruct        = OpenStruct.new
+        ostruct.start  = job.start
+        ostruct.end    = job.end
         ostruct.status = job.status
-        ostruct.time = job.time
-        @last = ostruct
+        ostruct.time   = job.time
+        @last          = ostruct
       else
         @last = nil
       end
@@ -162,7 +162,7 @@ module Oxidized
 
     # 重置节点状态
     def reset
-      @user = @email = @msg = @from = nil
+      @user  = @email = @msg = @from = nil
       @retry = 0
     end
 
@@ -241,7 +241,7 @@ module Oxidized
       # resolve key, first get global, then get group then get node config
       key_sym = key.to_sym
       key_str = key.to_s
-      value = global
+      value   = global
       Oxidized.logger.debug "node.rb: resolving node key '#{key}', with passed global value of '#{value}' and node value '#{opt[key_sym]}'"
 
       # global -- 全局配置

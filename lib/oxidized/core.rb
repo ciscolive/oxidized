@@ -13,7 +13,7 @@ module Oxidized
     # 实例化函数
     def initialize(_args)
       # 实例化 mgr hooks
-      Oxidized.mgr = Manager.new
+      Oxidized.mgr   = Manager.new
       Oxidized.hooks = HookManager.from_config(Oxidized.config)
       # 实例化并加载节点清单
       nodes = Nodes.new

@@ -14,7 +14,7 @@ module Oxidized
 
     def load(node_want = nil)
       with_lock do
-        new = []
+        new     = []
         @source = Oxidized.config.source.default
         Oxidized.mgr.add_source(@source) || raise(MethodNotFound, "cannot load node source '#{@source}', not found")
         Oxidized.logger.info "lib/oxidized/nodes.rb: Loading nodes"
@@ -94,11 +94,11 @@ module Oxidized
       return unless waiting.find_node_index(node)
 
       with_lock do
-        n = del node
-        n.user = opt["user"]
+        n       = del node
+        n.user  = opt["user"]
         n.email = opt["email"]
-        n.msg = opt["msg"]
-        n.from = opt["from"]
+        n.msg   = opt["msg"]
+        n.from  = opt["from"]
         # set last job to nil so that the node is picked for immediate update
         n.last = nil
         put n.inspect
@@ -203,7 +203,7 @@ module Oxidized
       each do |node|
         if (i = old.find_node_index(node.name))
           node.stats = old[i].stats
-          node.last = old[i].last
+          node.last  = old[i].last
         end
       rescue Oxidized::NodeNotFound
         Oxidized.logger.error "#{node.name} NodeNotFound"
@@ -214,7 +214,7 @@ module Oxidized
     # 将运行配置转储 -- 线程锁
     def yield_node_output(node_name)
       with_lock do
-        node = find { |n| n.name == node_name }
+        node   = find { |n| n.name == node_name }
         output = node&.output&.new
         raise Oxidized::NotSupported unless output.respond_to? :fetch
 

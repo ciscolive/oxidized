@@ -4,7 +4,7 @@ class Cambium < Oxidized::Model
   cfg_cb = lambda do
     c_page = @m.click @m_page.link_with(text: "Configuration")
     u_page = @m.click c_page.link_with(text: "Unit Settings")
-    cfg = @m.click u_page.link_with(text: /\.cfg$/)
+    cfg    = @m.click u_page.link_with(text: /\.cfg$/)
     cfg.body
   end
 

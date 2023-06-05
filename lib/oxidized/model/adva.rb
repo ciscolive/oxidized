@@ -39,7 +39,7 @@ class ADVA < Oxidized::Model
   end
 
   post do
-    ports = []
+    ports        = []
     ports_output = ""
 
     cmd "show ports" do |cfg|

@@ -35,11 +35,11 @@ module Oxidized
 
     # 实例化函数
     def initialize
-      @input = {}
+      @input  = {}
       @output = {}
       @source = {}
-      @model = {}
-      @hook = {}
+      @model  = {}
+      @hook   = {}
     end
 
     def add_input(name)

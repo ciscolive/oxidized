@@ -17,7 +17,7 @@ module Oxidized
       @node = node
       # tftp 相关配置回调
       @node.model.cfg["tftp"].each { |cb| instance_exec(&cb) }
-      @log = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_tftp.log", "w") if Oxidized.config.input.debug?
+      @log  = File.open(Oxidized::Config::LOG_DIR + "/#{@node.ip}_tftp.log", "w") if Oxidized.config.input.debug?
       @tftp = Net::TFTP.new @node.ip
     end
 

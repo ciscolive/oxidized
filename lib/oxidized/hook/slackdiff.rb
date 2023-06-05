@@ -29,7 +29,7 @@ class SlackDiff < Oxidized::Hook
 
     if cfg.has_key?("diff") ? cfg.diff : true
       git_output = ctx.node.output.new
-      diff = git_output.get_diff ctx.node, ctx.node.group, ctx.commitref, nil
+      diff       = git_output.get_diff ctx.node, ctx.node.group, ctx.commitref, nil
       unless diff == "no diffs"
         title = "#{ctx.node.name} #{ctx.node.group} #{ctx.node.model.class.name.to_s.downcase}"
         # 打印 diff 日志

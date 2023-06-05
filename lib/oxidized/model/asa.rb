@@ -92,9 +92,9 @@ class ASA < Oxidized::Model
     # Multiple context mode
     cmd "changeto system" do |cfg|
       cmd "show running-config" do |system_cfg|
-        all_cfg = "\n\n" + system_cfg + "\n\n"
+        all_cfg  = "\n\n" + system_cfg + "\n\n"
         contexts = system_cfg.scan(/^context (\S+)$/)
-        files = system_cfg.scan(/config-url (\S+)$/)
+        files    = system_cfg.scan(/config-url (\S+)$/)
         contexts.each_with_index do |cont, i|
           all_cfg = all_cfg + "\n\n----------========== [ CONTEXT " + cont.join(" ") + " FILE " + files[i].join(" ") + " ] ==========----------\n\n"
           cmd "more " + files[i].join(" ") do |cfg_context|

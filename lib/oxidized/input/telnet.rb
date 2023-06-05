@@ -9,7 +9,7 @@ module Oxidized
 
     # Telnet 登录主题逻辑
     def connect(node)
-      @node = node
+      @node    = node
       @timeout = Oxidized.config.timeout
       # telnet 相关回调函数
       @node.model.cfg["telnet"].each { |cb| instance_exec(&cb) }
@@ -96,30 +96,30 @@ module Net
 
     def oxidized_expect(options)
       model = @options["Model"]
-      @log = @options["Log"]
+      @log  = @options["Log"]
 
-      expects = [options[:expect]].flatten
+      expects  = [options[:expect]].flatten
       time_out = options[:timeout] || @options["Timeout"] || Oxidized.config.timeout?
 
       Timeout.timeout(time_out) do
         line = ""
         rest = ""
-        buf = ""
+        buf  = ""
         loop do
-          c = @sock.readpartial(1024 * 1024)
+          c       = @sock.readpartial(1024 * 1024)
           @output = c
-          c = rest + c
+          c       = rest + c
 
           if Integer(c.rindex(/#{IAC}#{SE}/no) || 0) <
              Integer(c.rindex(/#{IAC}#{SB}/no) || 0)
-            buf = preprocess(c[0...c.rindex(/#{IAC}#{SB}/no)])
+            buf  = preprocess(c[0...c.rindex(/#{IAC}#{SB}/no)])
             rest = c[c.rindex(/#{IAC}#{SB}/no)..-1]
           elsif (pt = c.rindex(/#{IAC}[^#{IAC}#{AO}#{AYT}#{DM}#{IP}#{NOP}]?\z/no) ||
             c.rindex(/\r\z/no))
-            buf = preprocess(c[0...pt])
+            buf  = preprocess(c[0...pt])
             rest = c[pt..-1]
           else
-            buf = preprocess(c)
+            buf  = preprocess(c)
             rest = ""
           end
           if Oxidized.config.input.debug?

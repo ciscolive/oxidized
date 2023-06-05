@@ -6,9 +6,9 @@ module Oxidized
   class Worker
     # 实例化函数 -- 线程异常则跳出
     def initialize(nodes)
-      @jobs_done = 0
-      @nodes = nodes
-      @jobs = Jobs.new(Oxidized.config.threads, Oxidized.config.use_max_threads, Oxidized.config.interval, @nodes)
+      @jobs_done  = 0
+      @nodes      = nodes
+      @jobs       = Jobs.new(Oxidized.config.threads, Oxidized.config.use_max_threads, Oxidized.config.interval, @nodes)
       @nodes.jobs = @jobs
       # 线程异常是否跳出
       Thread.abort_on_exception = true
@@ -48,7 +48,7 @@ module Oxidized
 
     # 根据任务状态运行对应的钩子函数
     def process(job)
-      node = job.node
+      node      = job.node
       node.last = job
       node.stats.add(job)
       @jobs.duration(job.time)

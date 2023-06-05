@@ -31,7 +31,7 @@ module Oxidized
 
     # 本地文件夹读取配置
     def fetch(node, group)
-      cfg_dir = File.expand_path(@cfg.directory)
+      cfg_dir   = File.expand_path(@cfg.directory)
       node_name = node.name
 
       if group # group is explicitly defined by user

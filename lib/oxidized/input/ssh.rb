@@ -24,8 +24,8 @@ module Oxidized
     # 连接设备 -- 必须提供节点信息
     # 设置终端信息
     def connect(node)
-      @node = node
-      @output = ""
+      @node        = node
+      @output      = ""
       @pty_options = { term: "vt100" }
       # SSH 会话相关配置 -- 比如设置登录权限账户等
       @node.model.cfg["ssh"].each { |cb| instance_exec(&cb) }
@@ -156,7 +156,7 @@ module Oxidized
 
     # 生成 SSH 会话参数
     def make_ssh_opts
-      secure = Oxidized.config.input.ssh.secure?
+      secure   = Oxidized.config.input.ssh.secure?
       ssh_opts = {
         number_of_password_prompts:      0,
         keepalive:                       vars(:ssh_no_keepalive) ? false : true,
@@ -168,20 +168,20 @@ module Oxidized
         forward_agent:                   false
       }
 
-      auth_methods = vars(:auth_methods) || %w[none publickey password]
+      auth_methods            = vars(:auth_methods) || %w[none publickey password]
       ssh_opts[:auth_methods] = auth_methods
       Oxidized.logger.debug "AUTH METHODS::#{auth_methods.inspect}"
 
-      ssh_opts[:proxy] = make_ssh_proxy_command(vars(:ssh_proxy), vars(:ssh_proxy_port), secure) if vars(:ssh_proxy)
+      ssh_opts[:proxy]      = make_ssh_proxy_command(vars(:ssh_proxy), vars(:ssh_proxy_port), secure) if vars(:ssh_proxy)
 
-      ssh_opts[:keys] = [vars(:ssh_keys)].flatten if vars(:ssh_keys)
-      ssh_opts[:kex] = vars(:ssh_kex).split(/,\s*/) if vars(:ssh_kex)
+      ssh_opts[:keys]       = [vars(:ssh_keys)].flatten if vars(:ssh_keys)
+      ssh_opts[:kex]        = vars(:ssh_kex).split(/,\s*/) if vars(:ssh_kex)
       ssh_opts[:encryption] = vars(:ssh_encryption).split(/,\s*/) if vars(:ssh_encryption)
-      ssh_opts[:host_key] = vars(:ssh_host_key).split(/,\s*/) if vars(:ssh_host_key)
-      ssh_opts[:hmac] = vars(:ssh_hmac).split(/,\s*/) if vars(:ssh_hmac)
+      ssh_opts[:host_key]   = vars(:ssh_host_key).split(/,\s*/) if vars(:ssh_host_key)
+      ssh_opts[:hmac]       = vars(:ssh_hmac).split(/,\s*/) if vars(:ssh_hmac)
 
       if Oxidized.config.input.debug?
-        ssh_opts[:logger] = Oxidized.logger
+        ssh_opts[:logger]  = Oxidized.logger
         ssh_opts[:verbose] = Logger::DEBUG
       end
 

@@ -39,8 +39,8 @@ class IronWare < Oxidized::Model
     cfg.gsub!(/(\[*)1(\]*)<->(\[*)2(\]*)(<->(\[*)3(\]*))*/, "")
     cfg.gsub!(/\d{2}\.\d deg-C/, "XX.X deg-C")
     if cfg.include? "TEMPERATURE"
-      sc = StringScanner.new cfg
-      out = ""
+      sc    = StringScanner.new cfg
+      out   = ""
       temps = ""
       out << sc.scan_until(/.*TEMPERATURE/)
       temps << sc.scan_until(/.*Fans/)

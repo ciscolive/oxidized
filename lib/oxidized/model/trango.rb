@@ -7,7 +7,7 @@ class Trango < Oxidized::Model
   comment "# "
 
   cmd "sysinfo" do |cfg|
-    out = []
+    out      = []
     comments = []
     cfg.each_line do |line|
       if line =~ /\[Opmode\] (off|on) \[Default Opmode\] (off|on)/

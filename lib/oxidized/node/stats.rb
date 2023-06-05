@@ -59,9 +59,9 @@ module Oxidized
 
       # 实例化函数
       def initialize
-        @history_size = Oxidized.config.stats.history_size? || MAX_STAT
-        @mtimes = Array.new(@history_size, Time.now.utc + (8 * 60 * 60))
-        @stats = {}
+        @history_size    = Oxidized.config.stats.history_size? || MAX_STAT
+        @mtimes          = Array.new(@history_size, Time.now.utc + (8 * 60 * 60))
+        @stats           = {}
         @stats[:counter] = Hash.new 0
       end
     end

@@ -216,7 +216,7 @@ module Oxidized
       Oxidized.logger.debug "lib/oxidized/model/model.rb Collecting commands' outputs"
       # 实例化脚本输出 -- 数组
       outputs = Outputs.new
-      procs = self.class.procs
+      procs   = self.class.procs
 
       # 运行时脚本 -- 至上而下依次执行脚本
       self.class.cmds[:cmd].each do |command, regex_re, block|

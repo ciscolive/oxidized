@@ -6,9 +6,9 @@ class GithubRepo < Oxidized::Hook
 
   # 执行回调函数
   def run_hook(ctx)
-    repo = Rugged::Repository.new(ctx.node.repo)
+    repo  = Rugged::Repository.new(ctx.node.repo)
     creds = credentials(ctx.node)
-    url = remote_repo(ctx.node)
+    url   = remote_repo(ctx.node)
 
     if url.nil? || url.empty?
       log "No repository defined for #{ctx.node.group}/#{ctx.node.name}", :debug
@@ -86,8 +86,8 @@ class GithubRepo < Oxidized::Hook
   # 使用 ssh 认证登录 github
   def rugged_sshkey(args = {})
     git_user = args[:git_user]
-    privkey = args[:privkey]
-    pubkey = args[:pubkey] || (privkey + ".pub")
+    privkey  = args[:privkey]
+    pubkey   = args[:pubkey] || (privkey + ".pub")
     Rugged::Credentials::SshKey.new(username:   git_user,
                                     publickey:  File.expand_path(pubkey),
                                     privatekey: File.expand_path(privkey),
