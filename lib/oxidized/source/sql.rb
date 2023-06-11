@@ -14,8 +14,9 @@ module Oxidized
       Oxidized.asetus.user.source.sql.adapter   = "sqlite"
       Oxidized.asetus.user.source.sql.database  = File.join(Config::ROOT_DIR, "sqlite.db")
       Oxidized.asetus.user.source.sql.table     = "devices"
+      Oxidized.asetus.user.source.sql.map.ip    = "ip"
       Oxidized.asetus.user.source.sql.map.name  = "name"
-      Oxidized.asetus.user.source.sql.map.model = "rancid"
+      Oxidized.asetus.user.source.sql.map.model = "model"
       Oxidized.asetus.save :user
       raise NoConfig, "no source sql config, edit ~/.config/oxidized/config"
     end
@@ -35,15 +36,15 @@ module Oxidized
       query.each do |node|
         # map node parameters
         keys = {}
-        @cfg.map.each { |key, sql_column| keys[key.to_sym] = node_var_interpolate node[sql_column.to_sym] }
+        @cfg.map.each { |key, sql_column| keys[key.to_sym] = node_var_interpolate(node[sql_column.to_sym]) }
         # 设置设备属组和模型
-        keys[:model] = map_model keys[:model] if keys.has_key? :model
-        keys[:group] = map_group keys[:group] if keys.has_key? :group
+        keys[:model] = map_model(keys[:model]) if keys.has_key?(:model)
+        keys[:group] = map_group(keys[:group]) if keys.has_key?(:group)
 
         # map node specific vars
         vars = {}
         @cfg.vars_map.each do |key, sql_column|
-          vars[key.to_sym] = node_var_interpolate node[sql_column.to_sym]
+          vars[key.to_sym] = node_var_interpolate(node[sql_column.to_sym])
         end
         keys[:vars] = vars unless vars.empty?
 
@@ -72,14 +73,10 @@ module Oxidized
         database: @cfg.database,
         ssl_mode: @cfg.ssl_mode?
       }
-      if @cfg.with_ssl?
-        options.merge!(sslca:   @cfg.ssl_ca?,
-                       sslcert: @cfg.ssl_cert?,
-                       sslkey:  @cfg.ssl_key?)
-      end
+      options.merge!(sslca: @cfg.ssl_ca?, sslcert: @cfg.ssl_cert?, sslkey: @cfg.ssl_key?) if @cfg.with_ssl?
       Sequel.connect(options)
     rescue Sequel::AdapterNotFound => error
-      raise OxidizedError, "SQL adapter gem not installed: " + error.message
+      raise OxidizedError, "SQL adapter gem not installed: #{error.message}"
     end
   end
 end

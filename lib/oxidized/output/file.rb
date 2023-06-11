@@ -31,16 +31,16 @@ module Oxidized
 
     # 本地文件夹读取配置
     def fetch(node, group)
-      cfg_dir   = File.expand_path(@cfg.directory)
+      dir = File.expand_path(@cfg.directory)
       node_name = node.name
 
       if group # group is explicitly defined by user
-        cfg_dir = File.join(File.dirname(cfg_dir), group)
-        File.read(File.join(cfg_dir, node_name))
-      elsif File.exist?(File.join(cfg_dir, node_name)) # node configuration file is stored on base directory
-        File.read(File.join(cfg_dir, node_name))
+        dir = File.join(File.dirname(dir), group)
+        File.read(File.join(dir, node_name))
+      elsif File.exist?(File.join(dir, node_name)) # node configuration file is stored on base directory
+        File.read(File.join(dir, node_name))
       else
-        path = Dir.glob(File.join(File.dirname(cfg_dir), "**", node_name)).first # fetch node in all groups
+        path = Dir.glob(File.join(File.dirname(dir), "**", node_name)).first # fetch node in all groups
         File.read(path) if path
       end
     rescue Errno::ENOENT

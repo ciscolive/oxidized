@@ -1,6 +1,10 @@
 module Oxidized
   require "asetus"
 
+  class << self
+    attr_accessor :mgr, :hooks
+  end
+
   class NoConfig < OxidizedError; end
 
   class InvalidConfig < OxidizedError; end
@@ -21,7 +25,8 @@ module Oxidized
     # rubocop:disable Metrics/MethodLength
     def self.load(cmd_opts = {})
       # 实例化 asetus 对象
-      asetus          = Asetus.new(name: "oxidized", load: false, key_to_s: true, usrdir: Oxidized::Config::ROOT_DIR)
+      asetus = Asetus.new(name: "oxidized", load: false, key_to_s: true, usrdir: Oxidized::Config::ROOT_DIR)
+      # 设定 asetus
       Oxidized.asetus = asetus
 
       # 设定缺省值
@@ -56,7 +61,7 @@ module Oxidized
       asetus.default.input.ftp.passive  = true # ftp passive mode
       asetus.default.input.utf8_encoded = true # configuration is utf8 encoded or ascii-8bit
 
-      asetus.default.output.default = "file" # file, git
+      asetus.default.output.default = "git" # file, git
       asetus.default.source.default = "csv" # csv, sql, http
 
       asetus.default.model_map = {
@@ -80,14 +85,11 @@ module Oxidized
       # override if command line flag given
       asetus.cfg.debug = cmd_opts[:debug] if cmd_opts[:debug]
 
+      # 返回 asetus
       asetus
     end
 
     # rubocop:enable Metrics/AbcSize
     # rubocop:enable Metrics/MethodLength
-  end
-
-  class << self
-    attr_accessor :mgr, :hooks
   end
 end

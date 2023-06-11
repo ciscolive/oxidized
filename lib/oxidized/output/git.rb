@@ -1,5 +1,7 @@
 module Oxidized
   class Git < Output
+    using Refinements
+
     class GitError < OxidizedError; end
 
     begin
@@ -35,8 +37,8 @@ module Oxidized
 
     def store(file, outputs, opt = {})
       @msg       = opt[:msg]
-      @user      = (opt[:user] || @cfg.user)
-      @email     = (opt[:email] || @cfg.email)
+      @user      = opt[:user] || @cfg.user
+      @email     = opt[:email] || @cfg.email
       @opt       = opt
       @commitref = nil
       repo       = @cfg.repo
@@ -61,7 +63,7 @@ module Oxidized
 
     def fetch(node, group)
       repo, path = yield_repo_and_path(node, group)
-      repo       = Rugged::Repository.new repo
+      repo       = Rugged::Repository.new(repo)
       index      = repo.index
       index.read_tree repo.head.target.tree unless repo.empty?
       repo.read(index.get(path)[:oid]).data
@@ -73,7 +75,7 @@ module Oxidized
     def version(node, group)
       repo, path = yield_repo_and_path(node, group)
 
-      repo   = Rugged::Repository.new repo
+      repo   = Rugged::Repository.new(repo)
       walker = Rugged::Walker.new(repo)
       walker.sorting(Rugged::SORT_DATE)
       walker.push(repo.head.target.oid)

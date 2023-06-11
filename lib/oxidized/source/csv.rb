@@ -1,5 +1,6 @@
 module Oxidized
   class CSV < Source
+    # 实例化函数
     def initialize
       super
       @cfg = Oxidized.config.source.csv
@@ -19,6 +20,7 @@ module Oxidized
       require "gpgme" if @cfg.gpg?
     end
 
+    # 自动加载备份设备清单
     def load(_node_want = nil)
       nodes = []
       open_file.each_line do |line|
@@ -32,16 +34,16 @@ module Oxidized
         # map node parameters
         keys = {}
         @cfg.map.each do |key, position|
-          keys[key.to_sym] = node_var_interpolate data[position]
+          keys[key.to_sym] = node_var_interpolate(data[position])
         end
         # 设定节点的模型和属组
-        keys[:model] = map_model keys[:model] if keys.has_key? :model
-        keys[:group] = map_group keys[:group] if keys.has_key? :group
+        keys[:model] = map_model(keys[:model]) if keys.has_key?(:model)
+        keys[:group] = map_group(keys[:group]) if keys.has_key?(:group)
 
         # map node specific vars
         vars = {}
         @cfg.vars_map.each do |key, position|
-          vars[key.to_sym] = node_var_interpolate data[position]
+          vars[key.to_sym] = node_var_interpolate(data[position])
         end
         keys[:vars] = vars unless vars.empty?
 
@@ -56,7 +58,7 @@ module Oxidized
     def open_file
       file = File.expand_path(@cfg.file)
       if @cfg.gpg?
-        crypto = GPGME::Crypto.new password: @cfg.gpg_password
+        crypto = GPGME::Crypto.new(password: @cfg.gpg_password)
         crypto.decrypt(File.open(file)).to_s
       else
         File.open(file)

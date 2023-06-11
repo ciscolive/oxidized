@@ -35,7 +35,7 @@ module Oxidized
       Oxidized.logger.debug "lib/oxidized/input/ssh.rb: Connecting to #{@node.name}"
       @ssh = Net::SSH.start(@node.ip, @node.auth[:username], make_ssh_opts)
       unless @exec
-        shell_open @ssh
+        shell_open(@ssh)
         begin
           login
         rescue Timeout::Error
@@ -54,15 +54,15 @@ module Oxidized
     def cmd(cmd, expect = node.prompt)
       Oxidized.logger.debug "lib/oxidized/input/ssh.rb #{cmd} @#{node.name} with expect: #{expect.inspect}"
       if @exec
-        @ssh.exec! cmd
+        @ssh.exec!(cmd)
       else
-        cmd_shell(cmd, expect).gsub(/\r\n/, "\n")
+        cmd_shell(cmd, expect)&.gsub(/\r\n/, "\n")
       end
     end
 
     # 直接发送脚本不捕捉回显
     def send(data)
-      @ses.send_data data
+      @ses.send_data(data)
     end
 
     # 类对象属性
@@ -70,7 +70,7 @@ module Oxidized
 
     # 支持伪终端
     def pty_options(hash)
-      @pty_options = @pty_options.merge hash
+      @pty_options = @pty_options.merge(hash)
     end
 
     private
@@ -99,14 +99,14 @@ module Oxidized
         ch.on_data do |_ch, data|
           # 如果启用 debug 将回显写入日志文件
           if Oxidized.config.input.debug?
-            @log.print data
+            @log.print(data)
             @log.flush
           end
           @output << data
 
           # 动态交互式执行脚本 -- 根据回显动态执行策略
           # lib/oxidized/model/model.rb -- 198 行
-          @output = @node.model.expects @output
+          @output = @node.model.expects(@output)
         end
 
         # 异步打开一个伪终端
@@ -130,9 +130,9 @@ module Oxidized
     # 交互式执行脚本
     def cmd_shell(cmd, expect_re)
       @output = ""
-      @ses.send_data cmd + "\n"
+      @ses.send_data("#{cmd}\n")
       @ses.process
-      expect expect_re if expect_re
+      expect(expect_re) if expect_re
       @output
     end
 
@@ -144,8 +144,8 @@ module Oxidized
       # 设定计时器 -- 有效时间内完成正则捕捉
       # 如果不匹配则抛出超时异常
       Timeout.timeout(Oxidized.config.timeout) do
-        @ssh.loop(0.3) do
-          sleep 0.5
+        @ssh.loop(0.2) do
+          sleep 0.3
           match = regexps.find { |regexp| @output.match(regexp) }
           return match if match
 

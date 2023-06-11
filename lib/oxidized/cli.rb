@@ -12,7 +12,7 @@ module Oxidized
         Oxidized.logger.info "Oxidized starting, running as pid #{$PROCESS_ID}"
         Oxidized.new
       rescue StandardError => error
-        crash error
+        crash(error)
         raise
       end
     end
@@ -34,7 +34,7 @@ module Oxidized
       File.open Config::CRASH_DIR, "w" do |file|
         file.puts "-" * 50
         file.puts Time.now.utc + (8 * 60 * 60)
-        file.puts error.message + " [" + error.class.to_s + "]"
+        file.puts "#{error.message} [#{error.class}]"
         file.puts "-" * 50
         file.puts error.backtrace
         file.puts "-" * 50
@@ -53,7 +53,7 @@ module Oxidized
         # 项目详细配置
         opt.on "-a", "--show-exhaustive-config", "output entire configuration, including defaults" do
           asetus = Config.load
-          puts asetus.to_yaml asetus.cfg
+          puts asetus.to_yaml(asetus.cfg)
           Kernel.exit
         end
         # 查看项目版本

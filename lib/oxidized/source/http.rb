@@ -37,16 +37,16 @@ module Oxidized
         # map node parameters
         keys = {}
         @cfg.map.each do |key, want_position|
-          keys[key.to_sym] = node_var_interpolate string_navigate(node, want_position)
+          keys[key.to_sym] = node_var_interpolate(string_navigate(node, want_position))
         end
         # 设置设备分组和模型
-        keys[:model] = map_model keys[:model] if keys.has_key? :model
-        keys[:group] = map_group keys[:group] if keys.has_key? :group
+        keys[:model] = map_model(keys[:model]) if keys.has_key? :model
+        keys[:group] = map_group(keys[:group]) if keys.has_key? :group
 
         # map node specific vars
         vars = {}
         @cfg.vars_map.each do |key, want_position|
-          vars[key.to_sym] = node_var_interpolate string_navigate(node, want_position)
+          vars[key.to_sym] = node_var_interpolate(string_navigate(node, want_position))
         end
         keys[:vars] = vars unless vars.empty?
 
@@ -65,7 +65,7 @@ module Oxidized
         match.empty? ? head : [head, match[1..-2].to_i]
       end
       wants.flatten.each do |want|
-        object = object[want] if object.respond_to? :each
+        object = object[want] if object.respond_to?(:each)
       end
       object
     end

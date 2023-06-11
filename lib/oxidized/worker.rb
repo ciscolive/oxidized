@@ -19,7 +19,7 @@ module Oxidized
       ended = []
       # 过滤已完成备份任务的节点清单
       @jobs.delete_if { |job| ended << job unless job.alive? }
-      ended.each { |job| process job }
+      ended.each { |job| process(job) }
       @jobs.work
 
       while @jobs.size < @jobs.want
@@ -38,7 +38,7 @@ module Oxidized
         node = @nodes.get
         node.running? ? next : node.running = true
 
-        @jobs.push Job.new node
+        @jobs.push Job.new(node)
         Oxidized.logger.debug "lib/oxidized/worker.rb: Added #{node.group}/#{node.name} to the job queue"
       end
 
@@ -54,9 +54,9 @@ module Oxidized
       @jobs.duration(job.time)
       node.running = false
       if job.status == :success
-        process_success node, job
+        process_success(node, job)
       else
-        process_failure node, job
+        process_failure(node, job)
       end
     rescue NodeNotFound
       Oxidized.logger.warn "#{node.group}/#{node.name} not found, removed while collecting?"
@@ -67,12 +67,11 @@ module Oxidized
     # 节点备份成功回调钩子
     def process_success(node, job)
       @jobs_done += 1 # needed for :nodes_done hook
-      Oxidized.hooks.handle :node_success, node: node,
-                                           job:  job
+      Oxidized.hooks.handle(:node_success, node: node, job: job)
       # 设定节点备份成功消息
       msg = "update #{node.group}/#{node.name}"
-      msg += " from #{node.from}" if node.from
-      msg += " with message '#{node.msg}'" if node.msg
+      msg << " from #{node.from}" if node.from
+      msg << " with message '#{node.msg}'" if node.msg
 
       # 实例化节点配置备份模式
       output = node.output.new
@@ -80,9 +79,7 @@ module Oxidized
         # 更新节点配置时间戳
         node.modified
         Oxidized.logger.info "Configuration updated for #{node.group}/#{node.name}"
-        Oxidized.hooks.handle :post_store, node:      node,
-                                           job:       job,
-                                           commitref: output.commitref
+        Oxidized.hooks.handle(:post_store, node: node, job: job, commitref: output.commitref)
       end
       node.reset
     end
@@ -93,7 +90,7 @@ module Oxidized
       if node.retry < Oxidized.config.retries
         node.retry += 1
         # 设定重试消息
-        msg += ", retry attempt #{node.retry}"
+        msg << ", retry attempt #{node.retry}"
         @nodes.next(node.name)
       else
         # Only increment the @jobs_done when we give up retries for a node (or success).
@@ -103,7 +100,7 @@ module Oxidized
         @jobs_done += 1
         node.retry = 0
         # 设定重试超次数消息
-        msg += ", retries exhausted, giving up"
+        msg << ", retries exhausted, giving up"
         Oxidized.hooks.handle(:node_fail, node: node, job: job)
       end
       Oxidized.logger.warn(msg)

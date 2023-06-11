@@ -4,6 +4,7 @@ require_relative "outputs"
 module Oxidized
   class Model
     using Refinements
+
     # 加载其他模块方法
     include Oxidized::Config::Vars
 
@@ -21,18 +22,18 @@ module Oxidized
         # Hash.new { |h, k| h[k] = [] } 可以提供动态创建默认值的功能，
         # 而 Hash.new 只能提供静态的默认值。使用具有块的Hash.new 可以更方便地处理需要默认值为数组等可变对象的情况。
         if klass.superclass == Oxidized::Model
-          klass.instance_variable_set :@cmd, (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set :@cfg, (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set :@procs, (Hash.new { |h, k| h[k] = [] })
-          klass.instance_variable_set :@expect, []
-          klass.instance_variable_set :@comment, nil
-          klass.instance_variable_set :@prompt, nil
+          klass.instance_variable_set(:@cmd, Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set(:@cfg, Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set(:@procs, Hash.new { |h, k| h[k] = [] })
+          klass.instance_variable_set(:@expect, [])
+          klass.instance_variable_set(:@comment, nil)
+          klass.instance_variable_set(:@prompt, nil)
         else
           # we're subclassing some existing model, take its variables
-          # 继承自其他子类模块
+          # 继承自其他子类模块，比如思科 NXOS 继承自 IOS
           instance_variables.each do |var|
             iv = instance_variable_get(var)
-            klass.instance_variable_set var, iv.dup
+            klass.instance_variable_set(var, iv.dup)
             @cmd[:cmd] = iv[:cmd].dup if var.to_s == "@cmd"
           end
         end
@@ -182,7 +183,7 @@ module Oxidized
 
     # 交互执行脚本
     def send(data)
-      @input.send data
+      @input.send(data)
     end
 
     # 设定正则执行的代码块 -- 设置正则表达式和代码块到 对象 @expects

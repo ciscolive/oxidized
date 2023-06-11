@@ -32,7 +32,7 @@ module Oxidized
           or disable web support by setting "rest: false" in your configuration'
         end
         # 启动 web 端
-        @rest = API::Web.new nodes, Oxidized.config.rest
+        @rest = API::Web.new(nodes, Oxidized.config.rest)
         @rest.run
       end
       run

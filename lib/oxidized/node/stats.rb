@@ -18,7 +18,7 @@ module Oxidized
         # 先进先出 -- 排队逻辑
         @stats[job.status] ||= []
         @stats[job.status].shift if @stats[job.status].size > @history_size
-        @stats[job.status].push stat
+        @stats[job.status].push(stat)
         @stats[:counter][job.status] += 1
       end
 
@@ -62,7 +62,7 @@ module Oxidized
         @history_size    = Oxidized.config.stats.history_size? || MAX_STAT
         @mtimes          = Array.new(@history_size, Time.now.utc + (8 * 60 * 60))
         @stats           = {}
-        @stats[:counter] = Hash.new 0
+        @stats[:counter] = Hash.new(0)
       end
     end
   end

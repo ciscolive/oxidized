@@ -16,8 +16,8 @@ module Oxidized
       @interval  = interval.zero? ? 1 : interval
       @nodes     = nodes
       @last      = Time.now.utc + (8 * 60 * 60)
-      @durations = Array.new @nodes.size, AVERAGE_DURATION
-      duration AVERAGE_DURATION
+      @durations = Array.new(@nodes.size, AVERAGE_DURATION)
+      duration(AVERAGE_DURATION)
       super()
     end
 
@@ -31,9 +31,9 @@ module Oxidized
     def duration(last)
       # 编排 @durations：如果队列大于@nodes则删减，小于@nodes则补充
       if @durations.size > @nodes.size
-        @durations.slice! @nodes.size...@durations.size
+        @durations.slice!(@nodes.size...@durations.size)
       elsif @durations.size < @nodes.size
-        @durations.fill AVERAGE_DURATION, @durations.size...@nodes.size
+        @durations.fill(AVERAGE_DURATION, @durations.size...@nodes.size)
       end
       # 尾部追加最新节点 -- 先进先出
       @durations.push(last).shift

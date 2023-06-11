@@ -16,7 +16,7 @@ module Oxidized
           # casecmp 字符串不区分大小写比较
           klass = mod.constants.find { |const| const.to_s.casecmp(file).zero? }
           klass ||= mod.constants.find { |const| const.to_s.downcase == "oxidized" + file.downcase }
-          klass = mod.const_get klass if klass
+          klass = mod.const_get(klass) if klass
           break if klass
         end
         i = klass&.new

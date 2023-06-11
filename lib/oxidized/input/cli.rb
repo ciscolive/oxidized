@@ -31,7 +31,7 @@ module Oxidized
         Oxidized.logger.debug "lib/oxidized/input/cli.rb: Running post_login commands at #{node.name}"
         @post_login.each do |command, block|
           Oxidized.logger.debug "lib/oxidized/input/cli.rb: Running post_login command: #{command.inspect}, block: #{block.inspect} at #{node.name}"
-          block ? block.call : (cmd command)
+          block ? block.call : cmd(command)
         end
       end
 
@@ -40,7 +40,7 @@ module Oxidized
         Oxidized.logger.debug "lib/oxidized/input/cli.rb Running pre_logout commands at #{node.name}"
         @pre_logout.each do |command, block|
           Oxidized.logger.debug "lib/oxidized/input/cli.rb: Running pre_logout command: #{command.inspect}, block: #{block.inspect} at #{node.name}"
-          block ? block.call : (cmd command, nil)
+          block ? block.call : cmd(command, nil)
         end
         # @pre_logout.each { |command, block| block ? block.call : (cmd command, nil) }
       end
@@ -82,7 +82,7 @@ module Oxidized
           # 自动交互输入账户和密码 -- 不需要捕捉回显也就不会等待回显超时
           cmd(@node.auth[:username], nil) if match == @username
           cmd(@node.auth[:password], nil) if match == @password
-          match_re.delete match
+          match_re.delete(match)
         end
       end
     end

@@ -12,6 +12,7 @@ module Oxidized
     attr_accessor :source, :jobs
     alias put unshift
 
+    # 自动装配备份任务清单
     def load(node_want = nil)
       with_lock do
         new     = []
@@ -30,9 +31,9 @@ module Oxidized
             node_obj = Node.new(node)
             new.push(node_obj)
           rescue ModelNotFound => err
-            Oxidized.logger.error "node %s raised %s with message '%s'" % [node, err.class, err.message]
+            Oxidized.logger.error "node #{node} raised #{err.class} with message '#{err.message}'"
           rescue Resolv::ResolvError => err
-            Oxidized.logger.error "node %s is not resolvable, raised %s with message '%s'" % [node, err.class, err.message]
+            Oxidized.logger.error "node #{node} is not resolvable, raised #{err.class} with message '#{err.message}'"
           end
         end
         size.zero? ? replace(new) : update_nodes(new)
@@ -44,16 +45,8 @@ module Oxidized
     def node_want?(node_want, node)
       return true unless node_want
 
-      node_want_ip = begin
-        IPAddr.new(node_want)
-      rescue StandardError
-        false
-      end
-      name_is_ip = begin
-        IPAddr.new(node[:name])
-      rescue StandardError
-        false
-      end
+      node_want_ip = IPAddr.new(node_want) rescue false
+      name_is_ip = IPAddr.new(node[:name]) rescue false
       # rubocop:todo Lint/DuplicateBranch
       if name_is_ip && (node_want_ip == node[:name])
         true
@@ -94,7 +87,7 @@ module Oxidized
       return unless waiting.find_node_index(node)
 
       with_lock do
-        n       = del node
+        n       = del(node)
         n.user  = opt["user"]
         n.email = opt["email"]
         n.msg   = opt["msg"]
@@ -169,7 +162,7 @@ module Oxidized
     # @param node node which looking for index
     # @return [Fixnum] node
     def find_index(node)
-      index { |e| [e.name, e.ip].include? node }
+      index { |e| [e.name, e.ip].include?(node) }
     end
 
     # @param node node which is removed from nodes list
@@ -181,13 +174,13 @@ module Oxidized
     # 已运行备份的节点
     # @return [Nodes] list of nodes running now
     def running
-      Nodes.new nodes: select { |node| node.running? }
+      Nodes.new(nodes: select { |node| node.running? })
     end
 
     # 待运行备份任务的节点 -- 飞运行状态
     # @return [Nodes] list of nodes waiting (not running)
     def waiting
-      Nodes.new nodes: select { |node| !node.running? }
+      Nodes.new(nodes: select { |node| !node.running? })
     end
 
     # walks list of new nodes, if old node contains same name, adds last and
@@ -216,9 +209,9 @@ module Oxidized
       with_lock do
         node   = find { |n| n.name == node_name }
         output = node&.output&.new
-        raise Oxidized::NotSupported unless output.respond_to? :fetch
+        raise Oxidized::NotSupported unless output.respond_to?(:fetch)
 
-        yield node, output
+        yield(node, output)
       end
     end
   end

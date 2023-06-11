@@ -18,21 +18,18 @@ module Oxidized
 
     # 实例化函数
     def initialize(opt)
-      Oxidized.logger.debug "resolving DNS for %s..." % opt[:name]
+      Oxidized.logger.debug "resolving DNS for #{opt[:name]}..."
       # remove the prefix if an IP Address is provided with one as IPAddr converts it to a network address.
       ip_addr, = opt[:ip].to_s.split("/")
-      Oxidized.logger.debug "IPADDR %s" % ip_addr.to_s
+      Oxidized.logger.debug "IPADDR #{ip_addr}"
       # 设定节点名称和IP地址
-      @name  = opt[:name]
-      @ip    = begin
-        IPAddr.new(ip_addr).to_s
-      rescue StandardError
-        nil
-      end
+      @name = opt[:name]
+      @ip = IPAddr.new(ip_addr).to_s rescue nil
       @ip    ||= Resolv.new.getaddress(@name) if Oxidized.config.resolve_dns?
       @ip    ||= @name
       @group = opt[:group]
       # 动态解析节点相关的模型、输入、输出和认证等信息
+      # 节点关联的模块解析期间会自动实例化
       @model  = resolve_model(opt)
       @input  = resolve_input(opt)
       @output = resolve_output(opt)
@@ -56,8 +53,8 @@ module Oxidized
       # 支持多种方式去登录设备
       @input.each do |input|
         # don't try input if model is missing config block, we may need strong config to class_name map
-        cfg_name = input.to_s.split("::").last.downcase
-        next unless @model.cfg[cfg_name] && !@model.cfg[cfg_name].empty?
+        method_name = input.to_s.split("::").last.downcase
+        next unless @model.cfg[method_name] && !@model.cfg[method_name].empty?
 
         # 如果其中一种登录方式已成功拿到数据则跳出后续处理逻辑
         @model.input = input = input.new
@@ -98,7 +95,7 @@ module Oxidized
           level = rescue_fail[ctx]
           ctx   = " (rescued #{ctx})"
         end
-        Oxidized.logger.send(level, '%s raised %s%s with msg "%s"' % [ip, err.class, ctx, err.message])
+        Oxidized.logger.send(level, "#{ip} raised #{err.class}#{ctx} with msg #{err.message}")
         @err_type   = err.class.to_s
         @err_reason = err.message.to_s
         false
@@ -110,11 +107,11 @@ module Oxidized
         # 写入异常日志文件
         File.open File.join(crash_dir, crash_file), "w" do |fh|
           fh.puts Time.now.utc + (8 * 60 * 60)
-          fh.puts err.message + " [" + err.class.to_s + "]"
+          fh.puts "#{err.message} [#{err.class}]"
           fh.puts "-" * 50
           fh.puts err.backtrace
         end
-        Oxidized.logger.error '%s raised %s with msg "%s", %s saved' % [ip, err.class, err.message, crash_file]
+        Oxidized.logger.error "#{ip} raised #{err.class} with msg #{err.message}, #{crash_file} saved"
         @err_type   = err.class.to_s
         @err_reason = err.message.to_s
         false
@@ -154,7 +151,8 @@ module Oxidized
         ostruct.end    = job.end
         ostruct.status = job.status
         ostruct.time   = job.time
-        @last          = ostruct
+        # 更新最新的备份数据
+        @last = ostruct
       else
         @last = nil
       end
@@ -200,6 +198,7 @@ module Oxidized
     end
 
     # 设备登录成功配置保存方式
+    # 支持单一的配置转储逻辑
     def resolve_output(opt)
       output = resolve_key(:output, opt, Oxidized.config.output.default)
       Oxidized.mgr.add_output(output) || raise(MethodNotFound, "#{output} not found for node #{ip}") unless Oxidized.mgr.output[output]

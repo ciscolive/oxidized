@@ -28,11 +28,11 @@ module Oxidized
     # 配置转储 -- HTTP 传输到外部
     def store(node, outputs, opt = {})
       @commitref = nil
-      uri        = URI.parse @cfg.url
-      http       = Net::HTTP.new uri.host, uri.port
+      uri        = URI.parse(@cfg.url)
+      http       = Net::HTTP.new(uri.host, uri.port)
       # http.use_ssl = true if uri.scheme = 'https'
       req = Net::HTTP::Post.new(uri.request_uri, "Content-Type" => "application/json")
-      req.basic_auth @cfg.user, @cfg.password
+      req.basic_auth(@cfg.user, @cfg.password)
       req.body = generate_json(node, outputs, opt)
       response = http.request req
 
